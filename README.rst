@@ -28,7 +28,7 @@ Add to INSTALLED_APPS::
         ...
     ]
 
-Define **TASTYPIE_SWAGGER_API_MODULE** in your settings.  It should be python path to your instance of tastypie.api.Api_::
+Define **TASTYPIE_SWAGGER_API_MODULE** in your settings.  It should be a python path to your instance of tastypie.api.Api_::
 
     TASTYPIE_SWAGGER_API_MODULE = 'mainsite.urls.api'
 
