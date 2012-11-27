@@ -110,7 +110,7 @@ class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
 
         context = super(SchemaView, self).get_context_data(*args, **kwargs)
         context.update({
-            'basePath': '',
+            'basePath': '/',
             'apis': mapping.build_apis(),
         })
         return context
