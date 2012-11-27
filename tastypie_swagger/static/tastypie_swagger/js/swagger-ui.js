@@ -1262,6 +1262,7 @@ templates['resource'] = template(function (Handlebars,depth0,helpers,partials,da
       });
       if (error_free) {
         map = {};
+        body_map = {};
         _ref = form.serializeArray();
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           o = _ref[_i];
@@ -1274,10 +1275,10 @@ templates['resource'] = template(function (Handlebars,depth0,helpers,partials,da
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
           param = _ref1[_j];
           if (param.paramType === 'body') {
-            bodyParam = map[param.name];
+            body_map[param.name] = map[param.name];
           }
         }
-        log("bodyParam = " + bodyParam);
+        bodyParam = JSON.stringify(body_map);
         headerParams = null;
         invocationUrl = this.model.supportHeaderParams() ? (headerParams = this.model.getHeaderParams(map), this.model.urlify(map, false)) : this.model.urlify(map, true);
         log('submitting ' + invocationUrl);
@@ -1299,7 +1300,7 @@ templates['resource'] = template(function (Handlebars,depth0,helpers,partials,da
             return _this.showCompleteStatus(data);
           }
         };
-        if (obj.type.toLowerCase() === "put" || obj.type.toLowerCase() === "patch") {
+        if (obj.type.toLowerCase() === "post" || obj.type.toLowerCase() === "put" || obj.type.toLowerCase() === "patch") {
           obj.contentType = "application/json";
         }
         jQuery.ajax(obj);
