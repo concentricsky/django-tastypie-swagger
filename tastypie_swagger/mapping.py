@@ -1,5 +1,8 @@
 from django.core.urlresolvers import reverse
 
+from .utils import trailing_slash_or_none, urljoin_forced
+
+
 # Ignored POST fields
 IGNORED_FIELDS = ['id', ]
 
@@ -25,6 +28,7 @@ class ResourceSwaggerMapping(object):
 
         We also use this to build the detail url, which may not be correct
         """
+        print self.resource.get_resource_list_uri()
         return self.resource.get_resource_list_uri()
 
     def build_parameter(self, paramType='body', name='', dataType='', required=True, description=''):
@@ -67,7 +71,7 @@ class ResourceSwaggerMapping(object):
 
     def build_detail_api(self):
         detail_api = {
-            'path': '%s{id}' % self.get_resource_base_uri(),
+            'path': urljoin_forced(self.get_resource_base_uri(), '{id}%s' % trailing_slash_or_none()),
             'operations': [],
         }
 
