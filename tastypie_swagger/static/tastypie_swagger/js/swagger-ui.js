@@ -117,17 +117,17 @@ var Docs = {
 
 	// Expand resource
 	expandEndpointListForResource: function(resource) {
-		$('[id^=resource_' + resource + ']').addClass('active');
+		$('[id=resource_' + resource + ']').addClass('active');
 
-		var elem = $('li[id^=resource_' + Docs.escapeResourceName(resource) + '] ul.endpoints');
+		var elem = $('li[id=resource_' + Docs.escapeResourceName(resource) + '] ul.endpoints');
 		elem.slideDown();
 	},
 
 	// Collapse resource and mark as explicitly closed
 	collapseEndpointListForResource: function(resource) {
-		$('[id^=resource_' + resource + ']').removeClass('active');
+		$('[id=resource_' + resource + ']').removeClass('active');
 
-		var elem = $('li[id^=resource_' + Docs.escapeResourceName(resource) + '] ul.endpoints');
+		var elem = $('li[id=resource_' + Docs.escapeResourceName(resource) + '] ul.endpoints');
 		elem.slideUp();
 	},
 
