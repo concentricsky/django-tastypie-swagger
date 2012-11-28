@@ -49,6 +49,7 @@ class ResourceSwaggerMapping(object):
                     name=name,
                     dataType=field['type'],
                     required=not field['blank'],
+                    description=field['help_text'],
                 ))
         return parameters
 
