@@ -28,7 +28,6 @@ class ResourceSwaggerMapping(object):
 
         We also use this to build the detail url, which may not be correct
         """
-        print self.resource.get_resource_list_uri()
         return self.resource.get_resource_list_uri()
 
     def build_parameter(self, paramType='body', name='', dataType='', required=True, description=''):
