@@ -76,7 +76,7 @@ class ResourcesView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
     """
     Provide a top-level resource listing for swagger
 
-    This JSON must confor to https://github.com/wordnik/swagger-core/wiki/Resource-Listing
+    This JSON must conform to https://github.com/wordnik/swagger-core/wiki/Resource-Listing
     """
 
     def get_context_data(self, *args, **kwargs):
