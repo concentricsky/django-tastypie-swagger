@@ -48,6 +48,9 @@
                 supportHeaderParams: false,
                 supportedSubmitMethods: ['get', 'post', 'put'],
                 onComplete: function(swaggerApi, swaggerUi){
+                    // Swaps throbber image from swagger-ui.js for ours
+                    $("img[src$='throbber.gif']").attr("src", "{{ STATIC_URL }}tastypie_swagger/images/throbber.gif");
+
                 	if(console) {
                         console.log("Loaded SwaggerUI")
                         console.log(swaggerApi);
