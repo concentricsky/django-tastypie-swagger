@@ -99,7 +99,7 @@ class ResourceSwaggerMapping(object):
             'parameters': self.build_parameters_from_filters(),
             'responseClass': 'List',
             'nickname': '%s-list' % self.resource_name,
-            }
+        }
 
     def build_detail_api(self):
         detail_api = {
