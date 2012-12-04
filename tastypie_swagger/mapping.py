@@ -24,11 +24,17 @@ class ResourceSwaggerMapping(object):
 
     def get_resource_base_uri(self):
         """
-        Use Resource.get_resource_list_uri to get the URL of the list endpoint
+        Use Resource.get_resource_list_uri (or Resource.get_resource_uri, depending on version of tastypie)
+        to get the URL of the list endpoint
 
         We also use this to build the detail url, which may not be correct
         """
-        return self.resource.get_resource_list_uri()
+        if hasattr(self.resource, 'get_resource_list_uri'):
+            return self.resource.get_resource_list_uri()
+        elif hasattr(self.resource, 'get_resource_uri'):
+            return self.resource.get_resource_uri()
+        else:
+            raise AttributeError('Resource %(resource)s has neither get_resource_list_uri nor get_resource_uri' % {'resource': self.resource})
 
     def build_parameter(self, paramType='body', name='', dataType='', required=True, description=''):
         return {
