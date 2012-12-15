@@ -1,5 +1,7 @@
+import datetime
 from django.core.urlresolvers import reverse
 from django.db.models.sql.constants import QUERY_TERMS
+from tastypie import fields
 
 from .utils import trailing_slash_or_none, urljoin_forced
 
@@ -81,9 +83,6 @@ class ResourceSwaggerMapping(object):
                     required=False,
                     description=unicode(desc),
                 ))
-
-
-
         if 'filtering' in self.schema and method.upper() == 'GET':
             for name, field in self.schema['filtering'].items():
                 # Integer value means this points to a related model
@@ -142,7 +141,7 @@ class ResourceSwaggerMapping(object):
         operation = {
             'httpMethod': method.upper(),
             'parameters': [self.build_parameter(paramType='path', name='id', dataType='int', description='ID of resource')],
-            'responseClass': 'Object',
+            'responseClass': self.resource_name,
             'nickname': '%s-detail' % self.resource_name,
             'notes': self.resource.__doc__,
         }
@@ -152,7 +151,7 @@ class ResourceSwaggerMapping(object):
         return {
             'httpMethod': method.upper(),
             'parameters': self.build_parameters_from_filters(method=method),
-            'responseClass': 'List',
+            'responseClass': 'ListView' if method.upper() == 'GET' else self.resource_name,
             'nickname': '%s-list' % self.resource_name,
             'notes': self.resource.__doc__,
         }
@@ -194,4 +193,127 @@ class ResourceSwaggerMapping(object):
 
     def build_apis(self):
         return [self.build_list_api(), self.build_detail_api()]
+
+    def build_property(self, name, type, description=""):
+
+        property = {
+            name: {
+                'type': type,
+                'description': description,
+            }
+        }
+
+        if type == 'List':
+            property[name]['items'] = {'$ref': name}
+
+        return property
+
+    def build_properties_from_fields(self):
+        properties = {}
+
+        for name, field in self.schema['fields'].items():
+            # Deal with default format
+            if isinstance(field.get('default'), fields.NOT_PROVIDED):
+                field['default'] = None
+            elif isinstance(field.get('default'), datetime.datetime):
+                field['default'] = field.get('default').isoformat()
+
+            properties.update(self.build_property(
+                    name,
+                    field.get('type'),
+                    field.get('help_text')
+                )
+            )
+        return properties
+
+    def build_model(self, resource_name, id, properties):
+        return {
+            resource_name: {
+                'properties': properties,
+                'id': id
+            }
+        }
+
+
+    def build_list_models_and_properties(self):
+        models = {}
+
+        # Build properties added by list view in the meta section by tastypie
+        meta_properties = {}
+        meta_properties.update(
+            self.build_property('limit','int', 'Specify the number of element to display per page.')
+        )
+        meta_properties.update(
+            self.build_property('next','string', 'Uri of the next page relative to the current page settings.')
+        )
+        meta_properties.update(
+            self.build_property('offset','int', 'Specify the offset to start displaying element on a page.')
+        )
+        meta_properties.update(
+            self.build_property('previous','string', 'Uri of the previous page relative to the current page settings.')
+        )
+        meta_properties.update(
+            self.build_property('total_count','int', 'Total items count for the all collection')
+        )
+
+        models.update(
+            self.build_model(
+                'Meta',
+                'Meta',
+                meta_properties
+            )
+        )
+
+        objects_properties = {}
+        objects_properties.update(
+            self.build_property(
+                self.resource_name,
+                "List")
+        )
+        # Build the Objects class added by tastypie in the list view.
+        models.update(
+            self.build_model(
+                'Objects',
+                'Objects',
+                objects_properties
+            )
+        )
+        # Build the actual List class
+        list_properties = {}
+        list_properties.update(self.build_property(
+            'meta',
+            'Meta'
+        ))
+
+        list_properties.update(self.build_property(
+            'objects',
+            'Objects'
+        ))
+        models.update(
+            self.build_model(
+                'ListView',
+                'ListView',
+                list_properties
+            )
+        )
+
+        return models
+
+    def build_models(self):
+        models = {}
+
+        # Take care of the list particular schema with meta and so on.
+        if 'get' in self.schema['allowed_list_http_methods']:
+            models.update(self.build_list_models_and_properties())
+
+        # Actually add the related model
+        models.update(
+            self.build_model(
+                resource_name=self.resource._meta.resource_name,
+                properties=self.build_properties_from_fields(),
+                id=self.resource_name
+            )
+        )
+        return models
+
 
