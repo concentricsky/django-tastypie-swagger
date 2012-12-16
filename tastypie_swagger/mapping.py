@@ -115,7 +115,7 @@ class ResourceSwaggerMapping(object):
                         field = ['gt','in','gte', 'lt', 'lte','exact'] # TODO This could be extended by checking the actual type of the relational field, but afaik it's also an issue on tastypie.
                         related_resource = self.resource.fields[name].get_related_resource(None)
                         related_mapping = ResourceSwaggerMapping(related_resource)
-                        parameters.extend(related_mapping.build_parameters_from_filters(prefix="%s%s__" % (prefix, related_mapping.resource_name)))
+                        parameters.extend(related_mapping.build_parameters_from_filters(prefix="%s%s__" % (prefix, name)))
 
                 if isinstance( field, list ):
                     # Skip if this is an incorrect filter
