@@ -148,6 +148,21 @@ class ResourceSwaggerMapping(object):
             required= True
         )
 
+    def build_parameters_from_extra_action(self, method, fields):
+        parameters = []
+        if method.upper() == 'GET':
+            parameters.append(self.build_parameter(paramType='path', name='id', dataType='int', description='ID of resource'))
+        for name, field in fields.items():
+            parameters.append(self.build_parameter(
+                paramType="query",
+                name=name,
+                dataType=field['type'],
+                required=field['required'],
+                description=unicode(field['description']),
+            ))
+
+        return parameters
+
     def build_detail_operation(self, method='get'):
         operation = {
             'httpMethod': method.upper(),
@@ -166,6 +181,14 @@ class ResourceSwaggerMapping(object):
             'nickname': '%s-list' % self.resource_name,
             'notes': self.resource.__doc__,
         }
+
+    def build_extra_operation(self, extra_action):
+            return {
+                'httpMethod': extra_action['http_method'].upper(),
+                'parameters': self.build_parameters_from_extra_action(method=extra_action.get('http_method'), fields=extra_action.get('fields')),
+                'responseClass': 'Object',
+                'nickname': extra_action['name'],
+                }
 
     def build_detail_api(self):
         detail_api = {
@@ -202,8 +225,25 @@ class ResourceSwaggerMapping(object):
 
         return list_api
 
+    def build_extra_api(self):
+        extra_apis = []
+        if hasattr(self.resource._meta, 'extra_actions'):
+            for extra_action in self.resource._meta.extra_actions:
+                extra_api = {
+                    'path': "%s{id}/call-ability/" % self.get_resource_base_uri(),
+                    'operations': []
+                }
+                operation = self.build_extra_operation(extra_action)
+                extra_api['operations'].append(operation)
+                extra_apis.append(extra_api)
+        return extra_apis
+
+
+
     def build_apis(self):
-        return [self.build_list_api(), self.build_detail_api()]
+        apis = [self.build_list_api(), self.build_detail_api()]
+        apis.extend(self.build_extra_api())
+        return apis
 
     def build_property(self, name, type, description=""):
 
