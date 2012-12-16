@@ -9,6 +9,8 @@ from .utils import trailing_slash_or_none, urljoin_forced
 # Ignored POST fields
 IGNORED_FIELDS = ['id', ]
 
+
+
 # Enable all basic ORM filters but do not allow filtering across relationships.
 ALL = 1
 # Enable all ORM filters, including across relationships
@@ -23,7 +25,7 @@ class ResourceSwaggerMapping(object):
     http://django-tastypie.readthedocs.org/en/latest/resources.html
     https://github.com/wordnik/swagger-core/wiki/API-Declaration
     """
-
+    WRITE_ACTION_IGNORED_FIELDS = ['id', 'resource_uri',]
     def __init__(self, resource):
         self.resource = resource
         self.resource_name = self.resource._meta.resource_name
@@ -64,6 +66,8 @@ class ResourceSwaggerMapping(object):
                     description=unicode(field['help_text']),
                 ))
         return parameters
+
+
 
     def build_parameters_from_filters(self, prefix="", method='GET'):
         parameters = []
@@ -137,6 +141,13 @@ class ResourceSwaggerMapping(object):
 
         return parameters
 
+    def build_parameter_for_object(self, method='get'):
+        return self.build_parameter(
+            name=self.resource_name,
+            dataType="%s_%s" % (self.resource_name, method) if not method == "get" else self.resource_name,
+            required= True
+        )
+
     def build_detail_operation(self, method='get'):
         operation = {
             'httpMethod': method.upper(),
@@ -165,7 +176,7 @@ class ResourceSwaggerMapping(object):
 
         if 'put' in self.schema['allowed_detail_http_methods']:
             operation = self.build_detail_operation(method='put')
-            operation['parameters'].extend(self.build_parameters_from_fields())
+            operation['parameters'].append(self.build_parameter_for_object(method='put'))
             detail_api['operations'].append(operation)
 
         if 'delete' in self.schema['allowed_detail_http_methods']:
@@ -184,7 +195,7 @@ class ResourceSwaggerMapping(object):
 
         if 'post' in self.schema['allowed_list_http_methods']:
             operation = self.build_list_operation(method='post')
-            operation['parameters'].extend(self.build_parameters_from_fields())
+            operation['parameters'].append(self.build_parameter_for_object(method='post'))
             list_api['operations'].append(operation)
 
         return list_api
@@ -206,10 +217,16 @@ class ResourceSwaggerMapping(object):
 
         return property
 
-    def build_properties_from_fields(self):
+    def build_properties_from_fields(self, method='get'):
         properties = {}
 
         for name, field in self.schema['fields'].items():
+            # Exclude fields from custom put / post object definition
+            if method in ['post','put']:
+                if name in self.WRITE_ACTION_IGNORED_FIELDS:
+                    continue
+                if field.get('readonly'):
+                    continue
             # Deal with default format
             if isinstance(field.get('default'), fields.NOT_PROVIDED):
                 field['default'] = None
@@ -303,6 +320,24 @@ class ResourceSwaggerMapping(object):
         # Take care of the list particular schema with meta and so on.
         if 'get' in self.schema['allowed_list_http_methods']:
             models.update(self.build_list_models_and_properties())
+
+        if 'post' in self.resource._meta.list_allowed_methods:
+            models.update(
+                self.build_model(
+                    resource_name='%s_post' % self.resource._meta.resource_name,
+                    properties=self.build_properties_from_fields(method='post'),
+                    id='%s_post' % self.resource_name
+                )
+            )
+
+        if 'put' in self.resource._meta.detail_allowed_methods:
+            models.update(
+                self.build_model(
+                    resource_name='%s_put' % self.resource._meta.resource_name,
+                    properties=self.build_properties_from_fields(method='put'),
+                    id='%s_put' % self.resource_name
+                )
+            )
 
         # Actually add the related model
         models.update(
