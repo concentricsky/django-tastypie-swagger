@@ -151,7 +151,7 @@ class ResourceSwaggerMapping(object):
     def build_parameters_from_extra_action(self, method, fields):
         parameters = []
         if method.upper() == 'GET':
-            parameters.append(self.build_parameter(paramType='path', name='id', dataType='int', description='ID of resource'))
+            parameters.append(self.build_parameter(paramType='path', name='%s' % self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else "id", dataType='int', description='ID of resource'))
         for name, field in fields.items():
             parameters.append(self.build_parameter(
                 paramType="query",
@@ -166,7 +166,7 @@ class ResourceSwaggerMapping(object):
     def build_detail_operation(self, method='get'):
         operation = {
             'httpMethod': method.upper(),
-            'parameters': [self.build_parameter(paramType='path', name='id', dataType='int', description='ID of resource')],
+            'parameters': [self.build_parameter(paramType='path', name='%s' % self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else "id", dataType='int', description='ID of resource')],
             'responseClass': self.resource_name,
             'nickname': '%s-detail' % self.resource_name,
         }
@@ -190,7 +190,7 @@ class ResourceSwaggerMapping(object):
 
     def build_detail_api(self):
         detail_api = {
-            'path': urljoin_forced(self.get_resource_base_uri(), '{id}%s' % trailing_slash_or_none()),
+            'path': urljoin_forced(self.get_resource_base_uri(), '{%s}%s' % (self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else "id", trailing_slash_or_none())),
             'operations': [],
         }
 
