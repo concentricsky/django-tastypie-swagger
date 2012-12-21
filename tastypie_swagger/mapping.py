@@ -131,13 +131,14 @@ class ResourceSwaggerMapping(object):
                                 required=schema_field['blank'],
                                 description=unicode(schema_field['help_text']),
                             ))
-                        parameters.append(self.build_parameter(
-                            paramType="query",
-                            name="%s%s__%s" % (prefix, name, query),
-                            dataType=schema_field['type'],
-                            required=schema_field['blank'],
-                            description=unicode(schema_field['help_text']),
-                        ))
+                        else:
+                            parameters.append(self.build_parameter(
+                                paramType="query",
+                                name="%s%s__%s" % (prefix, name, query),
+                                dataType=schema_field['type'],
+                                required=schema_field['blank'],
+                                description=unicode(schema_field['help_text']),
+                            ))
 
         return parameters
 
