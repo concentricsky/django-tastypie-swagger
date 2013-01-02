@@ -45,14 +45,20 @@ class ResourceSwaggerMapping(object):
         else:
             raise AttributeError('Resource %(resource)s has neither get_resource_list_uri nor get_resource_uri' % {'resource': self.resource})
 
-    def build_parameter(self, paramType='body', name='', dataType='', required=True, description=''):
-        return {
+    def build_parameter(self, paramType='body', name='', dataType='', required=True, description='', allowed_values = None):
+        parameter = {
             'paramType': paramType,
             'name': name,
             'dataType': dataType,
             'required': required,
             'description': description,
         }
+
+        # TODO make use of this to Implement the allowable_values of swagger (https://github.com/wordnik/swagger-core/wiki/Datatypes) at the field level.
+        # This could be added to the meta value of the resource to specify enum-like or range data on a field.
+#        if allowed_values:
+#            parameter.update({'allowableValues': allowed_values})
+        return parameter
 
     def build_parameters_from_fields(self):   
         parameters = []
@@ -67,7 +73,29 @@ class ResourceSwaggerMapping(object):
                 ))
         return parameters
 
+    def build_parameters_for_list(self, method='GET'):
+        parameters = self.build_parameters_from_filters(method=method)
 
+        # So far use case for ordering are only on GET request.
+        if 'ordering' in self.schema and method.upper() == 'GET':
+            parameters.append(self.build_parameters_from_ordering())
+        return parameters
+
+    def build_parameters_from_ordering(self):
+        values = []
+        [values.extend([field,"-%s"%field]) for field in self.schema['ordering']]
+        return {
+            'paramType': "query",
+            'name': "order_by",
+            'dataType': "String",
+            'required': False,
+            'description': unicode("Orders the result set based on the selection. Ascending order by default, prepending the '-' sign change the sorting order to descending"),
+            'allowableValues': {
+                'valueType' : "LIST",
+                'values': values
+
+            }
+        }
 
     def build_parameters_from_filters(self, prefix="", method='GET'):
         parameters = []
@@ -176,18 +204,18 @@ class ResourceSwaggerMapping(object):
     def build_list_operation(self, method='get'):
         return {
             'httpMethod': method.upper(),
-            'parameters': self.build_parameters_from_filters(method=method),
+            'parameters': self.build_parameters_for_list(method=method),
             'responseClass': 'ListView' if method.upper() == 'GET' else self.resource_name,
             'nickname': '%s-list' % self.resource_name,
             }
 
     def build_extra_operation(self, extra_action):
-            return {
-                'httpMethod': extra_action['http_method'].upper(),
-                'parameters': self.build_parameters_from_extra_action(method=extra_action.get('http_method'), fields=extra_action.get('fields')),
-                'responseClass': 'Object',
-                'nickname': extra_action['name'],
-                }
+        return {
+            'httpMethod': extra_action['http_method'].upper(),
+            'parameters': self.build_parameters_from_extra_action(method=extra_action.get('http_method'), fields=extra_action.get('fields')),
+            'responseClass': 'Object', #TODO this should be extended to allow the creation of a custom object.
+            'nickname': extra_action['name'],
+            }
 
     def build_detail_api(self):
         detail_api = {
@@ -224,12 +252,12 @@ class ResourceSwaggerMapping(object):
 
         return list_api
 
-    def build_extra_api(self):
+    def build_extra_apis(self):
         extra_apis = []
         if hasattr(self.resource._meta, 'extra_actions'):
             for extra_action in self.resource._meta.extra_actions:
                 extra_api = {
-                    'path': "%s{id}/call-ability/" % self.get_resource_base_uri(),
+                    'path': "%s{id}/%s/" % (self.get_resource_base_uri(), extra_action.get('name')),
                     'operations': []
                 }
                 operation = self.build_extra_operation(extra_action)
@@ -241,7 +269,7 @@ class ResourceSwaggerMapping(object):
 
     def build_apis(self):
         apis = [self.build_list_api(), self.build_detail_api()]
-        apis.extend(self.build_extra_api())
+        apis.extend(self.build_extra_apis())
         return apis
 
     def build_property(self, name, type, description=""):
@@ -356,6 +384,7 @@ class ResourceSwaggerMapping(object):
         return models
 
     def build_models(self):
+        #TODO this should be extended to allow the creation of a custom objects for extra_actions.
         models = {}
 
         # Take care of the list particular schema with meta and so on.
