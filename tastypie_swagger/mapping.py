@@ -96,6 +96,7 @@ class ResourceSwaggerMapping(object):
             'parameters': [self.build_parameter(paramType='path', name='id', dataType='int', description='ID of resource')],
             'responseClass': 'Object',
             'nickname': '%s-detail' % self.resource_name,
+            'notes': self.resource.__doc__,
         }
         return operation
 
@@ -105,6 +106,7 @@ class ResourceSwaggerMapping(object):
             'parameters': self.build_parameters_from_filters(),
             'responseClass': 'List',
             'nickname': '%s-list' % self.resource_name,
+            'notes': self.resource.__doc__,
         }
 
     def build_detail_api(self):
