@@ -156,7 +156,7 @@ class ResourceSwaggerMapping(object):
                                 paramType="query",
                                 name="%s%s" % (prefix, name),
                                 dataType=schema_field['type'],
-                                required=schema_field['blank'],
+                                required= False,
                                 description=unicode(schema_field['help_text']),
                             ))
                         else:
@@ -164,7 +164,7 @@ class ResourceSwaggerMapping(object):
                                 paramType="query",
                                 name="%s%s__%s" % (prefix, name, query),
                                 dataType=schema_field['type'],
-                                required=schema_field['blank'],
+                                required= False,
                                 description=unicode(schema_field['help_text']),
                             ))
 
