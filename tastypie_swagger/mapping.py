@@ -259,7 +259,7 @@ class ResourceSwaggerMapping(object):
         if hasattr(self.resource._meta, 'extra_actions'):
             for extra_action in self.resource._meta.extra_actions:
                 extra_api = {
-                    'path': "%s{id}/%s/" % (self.get_resource_base_uri(), extra_action.get('name')),
+                    'path': "%s{%s}/%s/" % (self.get_resource_base_uri(), self.resource._meta.detail_uri_name, extra_action.get('name')),
                     'operations': []
                 }
                 operation = self.build_extra_operation(extra_action)
