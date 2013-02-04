@@ -49,7 +49,7 @@ class ResourceSwaggerMapping(object):
             'description': description,
         }
 
-    def build_parameters_from_fields(self):   
+    def build_parameters_from_fields(self):
         parameters = []
         for name, field in self.schema['fields'].items():
             # Ignore readonly fields
@@ -87,6 +87,21 @@ class ResourceSwaggerMapping(object):
                             required=schema_field['blank'],
                             description=unicode(schema_field['help_text']),
                         ))
+
+        # For non-standard API functionality, allow the User to declaritively
+        # define their own filters, along with Swagger endpoint values.
+        # Minimal error checking here. If the User understands enough to want to
+        # do this, assume that they know what they're doing.
+        if hasattr(self.resource.Meta, 'custom_filtering'):
+            for name, field in self.resource.Meta.custom_filtering.items():
+                parameters.append(self.build_parameter(
+                        paramType = 'query',
+                        name = name,
+                        dataType = field['dataType'],
+                        required = field['required'],
+                        description = unicode(field['description'])
+                        ))
+
 
         return parameters
 
