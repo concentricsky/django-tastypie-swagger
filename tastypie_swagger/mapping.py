@@ -152,12 +152,20 @@ class ResourceSwaggerMapping(object):
                     schema_field = self.schema['fields'][name]
                     for query in field:
                         if query == 'exact':
+                            description = unicode(schema_field['help_text'])
+                            dataType = schema_field['type']
+                            # Use a better description for related models with exact filter
+                            if dataType == 'related':
+                                # Assume that related pk is an integer
+                                # TODO if youre not using integer ID for pk then we need to look this up somehow
+                                dataType = 'integer'
+                                description = 'ID of related resource'
                             parameters.append(self.build_parameter(
                                 paramType="query",
                                 name="%s%s" % (prefix, name),
-                                dataType=schema_field['type'],
+                                dataType=dataType,
                                 required= False,
-                                description=unicode(schema_field['help_text']),
+                                description=description,
                             ))
                         else:
                             parameters.append(self.build_parameter(
@@ -217,7 +225,7 @@ class ResourceSwaggerMapping(object):
             'parameters': self.build_parameters_from_extra_action(method=extra_action.get('http_method'), fields=extra_action.get('fields')),
             'responseClass': 'Object', #TODO this should be extended to allow the creation of a custom object.
             'nickname': extra_action['name'],
-            }
+        }
 
     def build_detail_api(self):
         detail_api = {
@@ -268,16 +276,13 @@ class ResourceSwaggerMapping(object):
                 extra_apis.append(extra_api)
         return extra_apis
 
-
-
     def build_apis(self):
         apis = [self.build_list_api(), self.build_detail_api()]
         apis.extend(self.build_extra_apis())
         return apis
 
     def build_property(self, name, type, description=""):
-
-        property = {
+        prop = {
             name: {
                 'type': type,
                 'description': description,
@@ -285,9 +290,9 @@ class ResourceSwaggerMapping(object):
         }
 
         if type == 'List':
-            property[name]['items'] = {'$ref': name}
+            prop[name]['items'] = {'$ref': name}
 
-        return property
+        return prop
 
     def build_properties_from_fields(self, method='get'):
         properties = {}
