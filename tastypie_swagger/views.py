@@ -56,7 +56,8 @@ class JSONView(TemplateView):
         """
         Returns a response with a template rendered with the given context.
         """
-        del context['params']
+        if 'params' in context:
+            del context['params']
         return self.response_class(
             json.dumps(context),
             content_type='application/json',
