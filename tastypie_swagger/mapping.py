@@ -319,7 +319,9 @@ class ResourceSwaggerMapping(object):
             properties.update(self.build_property(
                     name,
                     field.get('type'),
-                    field.get('help_text')
+                    # note: 'help_text' is a Django proxy which must be wrapped
+                    # in unicode *specifically* to get the actual help text.
+                    unicode(field.get('help_text', '')),
                 )
             )
         return properties
