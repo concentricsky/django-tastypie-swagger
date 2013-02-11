@@ -185,10 +185,16 @@ class ResourceSwaggerMapping(object):
             required= True
         )
 
+    def _detail_uri_name(self):
+        # For compatibility with TastyPie 0.9.11, which doesn't define a
+        # detail_uri_name by default.
+        detail_uri_name = getattr(self.resource._meta, "detail_uri_name", "pk")
+        return detail_uri_name == "pk" and "id" or detail_uri_name
+
     def build_parameters_from_extra_action(self, method, fields):
         parameters = []
         if method.upper() == 'GET':
-            parameters.append(self.build_parameter(paramType='path', name='%s' % self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else "id", dataType='int', description='ID of resource'))
+            parameters.append(self.build_parameter(paramType='path', name=self._detail_uri_name(), dataType='int', description='ID of resource'))
         for name, field in fields.items():
             parameters.append(self.build_parameter(
                 paramType="query",
@@ -203,7 +209,7 @@ class ResourceSwaggerMapping(object):
     def build_detail_operation(self, method='get'):
         operation = {
             'httpMethod': method.upper(),
-            'parameters': [self.build_parameter(paramType='path', name='%s' % self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else "id", dataType='int', description='ID of resource')],
+            'parameters': [self.build_parameter(paramType='path', name=self._detail_uri_name(), dataType='int', description='ID of resource')],
             'responseClass': self.resource_name,
             'nickname': '%s-detail' % self.resource_name,
             'notes': self.resource.__doc__,
@@ -229,7 +235,7 @@ class ResourceSwaggerMapping(object):
 
     def build_detail_api(self):
         detail_api = {
-            'path': urljoin_forced(self.get_resource_base_uri(), '{%s}%s' % (self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else "id", trailing_slash_or_none())),
+            'path': urljoin_forced(self.get_resource_base_uri(), '{%s}%s' % (self._detail_uri_name(), trailing_slash_or_none())),
             'operations': [],
         }
 
@@ -265,7 +271,7 @@ class ResourceSwaggerMapping(object):
     def build_extra_apis(self):
         extra_apis = []
         if hasattr(self.resource._meta, 'extra_actions'):
-            identifier = self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else 'id'
+            identifier = self._detail_uri_name()
             for extra_action in self.resource._meta.extra_actions:
                 extra_api = {
                     'path': "%s{%s}/%s/" % (self.get_resource_base_uri(), identifier , extra_action.get('name')),
