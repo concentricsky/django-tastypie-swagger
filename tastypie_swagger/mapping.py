@@ -1,6 +1,7 @@
 import datetime
 from django.core.urlresolvers import reverse
 from django.db.models.sql.constants import QUERY_TERMS
+from django.utils.encoding import force_unicode
 from tastypie import fields
 
 from .utils import trailing_slash_or_none, urljoin_forced
@@ -69,7 +70,7 @@ class ResourceSwaggerMapping(object):
                     name=name,
                     dataType=field['type'],
                     required=not field['blank'],
-                    description=unicode(field['help_text']),
+                    description=force_unicode(field['help_text']),
                 ))
         return parameters
 
@@ -113,7 +114,7 @@ class ResourceSwaggerMapping(object):
                     name=name,
                     dataType=type,
                     required=False,
-                    description=unicode(desc),
+                    description=force_unicode(desc),
                 ))
         if 'filtering' in self.schema and method.upper() == 'GET':
             for name, field in self.schema['filtering'].items():
@@ -152,7 +153,7 @@ class ResourceSwaggerMapping(object):
                     schema_field = self.schema['fields'][name]
                     for query in field:
                         if query == 'exact':
-                            description = unicode(schema_field['help_text'])
+                            description = force_unicode(schema_field['help_text'])
                             dataType = schema_field['type']
                             # Use a better description for related models with exact filter
                             if dataType == 'related':
@@ -173,7 +174,7 @@ class ResourceSwaggerMapping(object):
                                 name="%s%s__%s" % (prefix, name, query),
                                 dataType=schema_field['type'],
                                 required= False,
-                                description=unicode(schema_field['help_text']),
+                                description=force_unicode(schema_field['help_text']),
                             ))
 
         return parameters
@@ -185,17 +186,23 @@ class ResourceSwaggerMapping(object):
             required= True
         )
 
+    def _detail_uri_name(self):
+        # For compatibility with TastyPie 0.9.11, which doesn't define a
+        # detail_uri_name by default.
+        detail_uri_name = getattr(self.resource._meta, "detail_uri_name", "pk")
+        return detail_uri_name == "pk" and "id" or detail_uri_name
+
     def build_parameters_from_extra_action(self, method, fields):
         parameters = []
         if method.upper() == 'GET':
-            parameters.append(self.build_parameter(paramType='path', name='%s' % self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else "id", dataType='int', description='ID of resource'))
+            parameters.append(self.build_parameter(paramType='path', name=self._detail_uri_name(), dataType='int', description='ID of resource'))
         for name, field in fields.items():
             parameters.append(self.build_parameter(
                 paramType="query",
                 name=name,
                 dataType=field['type'],
                 required=field['required'],
-                description=unicode(field['description']),
+                description=force_unicode(field['description']),
             ))
 
         return parameters
@@ -203,7 +210,7 @@ class ResourceSwaggerMapping(object):
     def build_detail_operation(self, method='get'):
         operation = {
             'httpMethod': method.upper(),
-            'parameters': [self.build_parameter(paramType='path', name='%s' % self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else "id", dataType='int', description='ID of resource')],
+            'parameters': [self.build_parameter(paramType='path', name=self._detail_uri_name(), dataType='int', description='ID of resource')],
             'responseClass': self.resource_name,
             'nickname': '%s-detail' % self.resource_name,
             'notes': self.resource.__doc__,
@@ -229,7 +236,7 @@ class ResourceSwaggerMapping(object):
 
     def build_detail_api(self):
         detail_api = {
-            'path': urljoin_forced(self.get_resource_base_uri(), '{%s}%s' % (self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else "id", trailing_slash_or_none())),
+            'path': urljoin_forced(self.get_resource_base_uri(), '{%s}%s' % (self._detail_uri_name(), trailing_slash_or_none())),
             'operations': [],
         }
 
@@ -265,7 +272,7 @@ class ResourceSwaggerMapping(object):
     def build_extra_apis(self):
         extra_apis = []
         if hasattr(self.resource._meta, 'extra_actions'):
-            identifier = self.resource._meta.detail_uri_name if self.resource._meta.detail_uri_name != 'pk' else 'id'
+            identifier = self._detail_uri_name()
             for extra_action in self.resource._meta.extra_actions:
                 extra_api = {
                     'path': "%s{%s}/%s/" % (self.get_resource_base_uri(), identifier , extra_action.get('name')),
@@ -313,7 +320,9 @@ class ResourceSwaggerMapping(object):
             properties.update(self.build_property(
                     name,
                     field.get('type'),
-                    field.get('help_text')
+                    # note: 'help_text' is a Django proxy which must be wrapped
+                    # in unicode *specifically* to get the actual help text.
+                    force_unicode(field.get('help_text', '')),
                 )
             )
         return properties
@@ -426,5 +435,6 @@ class ResourceSwaggerMapping(object):
             )
         )
         return models
+
 
 
