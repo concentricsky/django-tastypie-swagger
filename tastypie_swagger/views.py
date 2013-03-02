@@ -56,7 +56,8 @@ class JSONView(TemplateView):
         """
         Returns a response with a template rendered with the given context.
         """
-        del context['params']
+        if 'params' in context:
+            del context['params']
         return self.response_class(
             json.dumps(context),
             content_type='application/json',
@@ -112,5 +113,6 @@ class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
         context.update({
             'basePath': '/',
             'apis': mapping.build_apis(),
+            'models': mapping.build_models()
         })
         return context
