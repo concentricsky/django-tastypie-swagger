@@ -1,5 +1,3 @@
-**WARNING: This package is ultra young and still needs a lot of work**
-
 Synopsis
 ========
 

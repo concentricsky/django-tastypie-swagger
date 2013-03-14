@@ -27,10 +27,40 @@ class ResourceSwaggerMapping(object):
     https://github.com/wordnik/swagger-core/wiki/API-Declaration
     """
     WRITE_ACTION_IGNORED_FIELDS = ['id', 'resource_uri',]
+
+    # Default summary strings for operations
+    OPERATION_SUMMARIES = {
+        'get-detail': "Retrieve a single %s by ID",
+        'get-list': "Retrieve a list of %s",
+        'post-list': "Create a new %s",
+        'put-detail': "Update an existing %s",
+        'delete-detail': "Delete an existing %s",
+    }
+
     def __init__(self, resource):
         self.resource = resource
         self.resource_name = self.resource._meta.resource_name
         self.schema = self.resource.build_schema()
+
+    def get_resource_verbose_name(self, plural=False):
+        qs = self.resource._meta.queryset
+        if qs is not None and hasattr(qs, 'model'):
+            meta = qs.model._meta
+            verbose_name = plural and meta.verbose_name_plural or meta.verbose_name
+            return verbose_name.lower()
+        return self.resource_name
+
+    def get_operation_summary(self, detail=True, method='get'):
+        """
+        Get a basic summary string for a single operation
+        """
+        key = '%s-%s' % (method.lower(), detail and 'detail' or 'list')
+        plural = not detail and method is 'get'
+        verbose_name = self.get_resource_verbose_name(plural=plural)
+        summary = self.OPERATION_SUMMARIES.get(key, '')
+        if summary:
+            return summary % verbose_name
+        return ''
 
     def get_resource_base_uri(self):
         """
@@ -209,6 +239,7 @@ class ResourceSwaggerMapping(object):
 
     def build_detail_operation(self, method='get'):
         operation = {
+            'summary': self.get_operation_summary(detail=True, method=method),
             'httpMethod': method.upper(),
             'parameters': [self.build_parameter(paramType='path', name=self._detail_uri_name(), dataType='int', description='ID of resource')],
             'responseClass': self.resource_name,
@@ -219,6 +250,7 @@ class ResourceSwaggerMapping(object):
 
     def build_list_operation(self, method='get'):
         return {
+            'summary': self.get_operation_summary(detail=False, method=method),
             'httpMethod': method.upper(),
             'parameters': self.build_parameters_for_list(method=method),
             'responseClass': 'ListView' if method.upper() == 'GET' else self.resource_name,
