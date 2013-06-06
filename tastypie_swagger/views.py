@@ -16,11 +16,15 @@ class TastypieApiMixin(object):
 
     Python path must be defined in settings as TASTYPIE_SWAGGER_API_MODULE
     """
-    def __init__(self, *args, **kwargs):
-        super(TastypieApiMixin, self).__init__(*args, **kwargs)
-        tastypie_api_module = getattr(settings, 'TASTYPIE_SWAGGER_API_MODULE', None)
+    _tastypie_api = None
+
+    @property
+    def tastypie_api(self):
+
+        # if not self._tastypie_api:
+        tastypie_api_module = self.kwargs.get('tastypie_api_module', None)
         if not tastypie_api_module:
-            raise ImproperlyConfigured("Must define TASTYPIE_SWAGGER_API_MODULE in settings as path to a tastypie.api.Api instance")
+            raise ImproperlyConfigured("tastypie_api_module must be defined as an extra parameters in urls.py with its value being a path to a tastypie.api.Api instance.")
         path, attr = tastypie_api_module.rsplit('.', 1)
         try:
             tastypie_api = getattr(sys.modules[path], attr, None)
@@ -28,8 +32,10 @@ class TastypieApiMixin(object):
             raise ImproperlyConfigured("%s is not a valid python path" % path)
         if not tastypie_api:
             raise ImproperlyConfigured("%s is not a valid tastypie.api.Api instance" % tastypie_api_module)
-        self.tastypie_api = tastypie_api
 
+        self._tastypie_api = tastypie_api
+
+        return self._tastypie_api
 
 class SwaggerApiDataMixin(object):
     """
@@ -75,6 +81,11 @@ class SwaggerView(TastypieApiMixin, TemplateView):
 
     template_name = 'tastypie_swagger/index.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(SwaggerView, self).get_context_data(**kwargs)
+        context['discovery_url'] = reverse('%s:resources' % self.kwargs.get('namespace'))
+        return context
+
 
 class ResourcesView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
     """
@@ -89,7 +100,7 @@ class ResourcesView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
         # Construct schema endpoints from resources
         apis = [{'path': '/%s' % name} for name in sorted(self.tastypie_api._registry.keys())]
         context.update({
-            'basePath': self.request.build_absolute_uri(reverse('tastypie_swagger:schema')),
+            'basePath': self.request.build_absolute_uri(reverse('%s:schema' % self.kwargs.get('namespace'))),
             'apis': apis,
         })
         return context
