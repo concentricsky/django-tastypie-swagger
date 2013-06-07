@@ -21,19 +21,20 @@ class TastypieApiMixin(object):
     @property
     def tastypie_api(self):
 
-        # if not self._tastypie_api:
-        tastypie_api_module = self.kwargs.get('tastypie_api_module', None)
-        if not tastypie_api_module:
-            raise ImproperlyConfigured("tastypie_api_module must be defined as an extra parameters in urls.py with its value being a path to a tastypie.api.Api instance.")
-        path, attr = tastypie_api_module.rsplit('.', 1)
-        try:
-            tastypie_api = getattr(sys.modules[path], attr, None)
-        except KeyError:
-            raise ImproperlyConfigured("%s is not a valid python path" % path)
-        if not tastypie_api:
-            raise ImproperlyConfigured("%s is not a valid tastypie.api.Api instance" % tastypie_api_module)
+        if not self._tastypie_api:
 
-        self._tastypie_api = tastypie_api
+            tastypie_api_module = self.kwargs.get('tastypie_api_module', None)
+            if not tastypie_api_module:
+                raise ImproperlyConfigured("tastypie_api_module must be defined as an extra parameters in urls.py with its value being a path to a tastypie.api.Api instance.")
+            path, attr = tastypie_api_module.rsplit('.', 1)
+            try:
+                tastypie_api = getattr(sys.modules[path], attr, None)
+            except KeyError:
+                raise ImproperlyConfigured("%s is not a valid python path" % path)
+            if not tastypie_api:
+                raise ImproperlyConfigured("%s is not a valid tastypie.api.Api instance" % tastypie_api_module)
+
+            self._tastypie_api = tastypie_api
 
         return self._tastypie_api
 
