@@ -87,7 +87,7 @@ class ResourcesView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
         # Construct schema endpoints from resources
         apis = [{'path': '/%s' % name} for name in sorted(self.tastypie_api._registry.keys())]
         context.update({
-            'basePath': self.request.build_absolute_uri(reverse('tastypie_swagger:schema')),
+            'basePath': self.request.build_absolute_uri(reverse('tastypie_swagger:schema')).strip('/'),
             'apis': apis,
         })
         return context
@@ -112,7 +112,7 @@ class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
 
         context = super(SchemaView, self).get_context_data(*args, **kwargs)
         context.update({
-            'basePath': self.request.build_absolute_uri('/'),
+            'basePath': self.request.build_absolute_uri('/').strip('/'),
             'apis': mapping.build_apis(),
             'models': mapping.build_models()
         })
