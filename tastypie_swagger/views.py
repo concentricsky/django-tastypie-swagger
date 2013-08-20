@@ -41,7 +41,7 @@ class SwaggerApiDataMixin(object):
         context.update({
             # TODO: How should versions be controlled?
             'apiVersion': '0.1',
-            'swaggerVersion': '1.1',
+            'swaggerVersion': '2.0',
         })
         return context
 
