@@ -7,6 +7,7 @@ This package provides two things:
 
 1. An embedded instance of `Swagger UI`_ to point a URL to.
 2. Automatic `Resource Listing`_ and `API Declaration`_ generation that is consumed by #1
+3. Markdown parsing of Resource docstrings using `misaka`_
 
 
 Usage
@@ -61,3 +62,4 @@ You can use `this ModelResource subclass <https://gist.github.com/4041352>`_ as 
 .. _API Declaration: https://github.com/wordnik/swagger-core/wiki/API-Declaration
 .. _Swagger UI: https://github.com/wordnik/swagger-ui
 .. _tastypie.api.Api: https://django-tastypie.readthedocs.org/en/latest/api.html
+.. _misaka: https://github.com/FSX/misaka

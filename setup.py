@@ -18,6 +18,7 @@ setup(
     long_description=longdesc,
     author='Concentric Sky',
     author_email='code@concentricsky.com',
+    install_requires = ['misaka==1.0.2'],
     classifiers=[
         'Programming Language :: Python',
         'Environment :: Web Environment',
