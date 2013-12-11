@@ -71,6 +71,17 @@ class SwaggerView(TastypieApiMixin, TemplateView):
     Display the swagger-ui page
     """
 
+    def get_context_data(self, *args, **kwargs):
+        context = super(SwaggerView, self).get_context_data(*args, **kwargs)
+        context.update({
+            "APP_NAME": getattr(settings, "TASTYPIE_SWAGGER_APP_NAME", "swagger"),
+            "APP_LINK": getattr(settings, "TASTYPIE_SWAGGER_APP_LINK", "/"),
+            "SHOW_DEV": getattr(settings, "TASTYPIE_SWAGGER_SHOW_DEV", False),
+            "KEY_NAME": getattr(settings, "TASTYPIE_SWAGGER_KEY_NAME", "apiKey"),
+            "API_KEY": getattr(settings, "TASTYPIE_SWAGGER_API_KEY", ""),
+        })
+        return context
+
     template_name = 'tastypie_swagger/index.html'
 
 

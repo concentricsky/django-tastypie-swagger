@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Swagger UI</title>
+    <title>{{ APP_NAME|title }} API Documentation</title>
     <link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'/>
     <link href='{{ STATIC_URL }}tastypie_swagger/css/hightlight.default.css' media='screen' rel='stylesheet' type='text/css'/>
     <link href='{{ STATIC_URL }}tastypie_swagger/css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
@@ -47,7 +47,8 @@
         $(function () {
             window.swaggerUi = new SwaggerUi({
                 discoveryUrl:"{% url 'tastypie_swagger:resources' %}",
-                apiKey:"special-key",
+                apiKey:"{{ API_KEY }}",
+                apiKeyName:"{{ KEY_NAME }}",
                 dom_id:"swagger-ui-container",
                 supportHeaderParams: false,
                 supportedSubmitMethods: ['get', 'post', 'put'],
@@ -78,18 +79,20 @@
 <body>
 <div id='header'>
     <div class="swagger-ui-wrap">
-        <a id="logo" href="http://swagger.wordnik.com">swagger</a>
+        <a id="logo" href="{{ APP_LINK }}">{{ APP_NAME }}</a>
 
         <form id='api_selector'>
+            {% if SHOW_DEV %}
             <div class='input icon-btn'>
                 <img id="show-pet-store-icon" src="{{ STATIC_URL }}tastypie_swagger/images/pet_store_api.png" title="Show Swagger Petstore Example Apis">
             </div>
             <div class='input icon-btn'>
                 <img id="show-wordnik-dev-icon" src="{{ STATIC_URL }}tastypie_swagger/images/wordnik_api.png" title="Show Wordnik Developer Apis">
             </div>
+            {% endif %}
             <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl"
                                       type="text"/></div>
-            <div class='input'><input placeholder="api_key" id="input_apiKey" name="apiKey" type="text"/></div>
+            <div class='input'><input placeholder="api_key" id="input_apiKey" name="{{ KEY_NAME }}" type="text"/></div>
             <div class='input'><a id="explore" href="#">Explore</a></div>
         </form>
     </div>

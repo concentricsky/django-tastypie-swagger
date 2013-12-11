@@ -43,6 +43,46 @@ Include in your urlconf with namespace **tastypie_swagger**::
 
 Swagger documentation will be served up at the URL you configured.
 
+Configuration
+-------------------------
+
+The following configuration variables can be set inside ``settings.py`` to
+configure this application.
+
+TASTYPIE_SWAGGER_APP_NAME
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``'swagger'``
+
+Changes the name of the application in the documentation view. This is also used in the title of the documentation view in the form of ``{{ NAME|title }} API Documentation``.
+
+TASTYPIE_SWAGGER_APP_LINK
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``'/'``
+
+Changes where the application name is linked to in the documentation view.
+
+TASTYPIE_SWAGGER_SHOW_DEV
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``False``
+
+Show or hide the example documentation links.
+
+TASTYPIE_SWAGGER_KEY_NAME
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``'apiKey'``
+
+Change the name of the api key that will be passed to requests.
+
+TASTYPIE_SWAGGER_API_KEY
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``''`` (empty string)
+
+Prefills an example api key in the documentation view.
 
 Detecting required fields
 -------------------------
