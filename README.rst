@@ -54,7 +54,7 @@ TASTYPIE_SWAGGER_APP_NAME
 
 Default: ``'swagger'``
 
-Changes the name of the application in the documentation view.
+Changes the name of the application in the documentation view. This is also used in the title of the documentation view in the form of ``{{ NAME|title }} API Documentation``.
 
 TASTYPIE_SWAGGER_APP_LINK
 ~~~~~~~~~~~~~~~~~~~~~~~~~
