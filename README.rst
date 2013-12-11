@@ -56,7 +56,7 @@ Default: ``'swagger'``
 
 Changes the name of the application in the documentation view.
 
-TASTYPIE_SWAGGER_APP_NAME
+TASTYPIE_SWAGGER_APP_LINK
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Default: ``'/'``
