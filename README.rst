@@ -43,6 +43,38 @@ Include in your urlconf with namespace **tastypie_swagger**::
 
 Swagger documentation will be served up at the URL you configured.
 
+Using ``extra_actions``
+--------------------
+
+While most **ModelResource** based endpoints are good *as-is* there are times
+when adding additional functionality (`like search <http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality>`_)
+is required. In Tastypie the recommended way do to this is by overriding the
+``prepend_urls`` function and returning a list of urls that describe additional
+endpoints. How do you make the schema map represent these endpoints so they are
+properly documented?::
+
+Add an attribute to the ``Meta`` class inside your **ModelResource** class
+called ``extra_actions``. Following the Tastypie search example, here is how
+``extra_actions`` should be defined::
+
+    class Meta:
+        ...
+        extra_actions = [
+            {
+                "name": "search",
+                "http_method": "GET",
+                "resource_type": "list",
+                "fields": {
+                    "q": {
+                        "type": "string",
+                        "required": True,
+                        "description": "Search query terms"
+                    }
+                }
+            }
+        ]
+
+
 
 Detecting required fields
 -------------------------
