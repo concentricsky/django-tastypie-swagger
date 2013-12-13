@@ -224,15 +224,18 @@ class ResourceSwaggerMapping(object):
 
     def build_parameters_from_extra_action(self, method, fields, resource_type):
         parameters = []
-        if method.upper() == 'GET' and resource_type == "view":
-            parameters.append(self.build_parameter(paramType='path', name=self._detail_uri_name(), dataType='int', description='ID of resource'))
+        if method.upper() == 'GET' or resource_type == "view":
+            parameters.append(self.build_parameter(paramType='path',
+                name=self._detail_uri_name(),
+                dataType='int',
+                description='ID of resource'))
         for name, field in fields.items():
             parameters.append(self.build_parameter(
                 paramType="query",
                 name=name,
-                dataType=field['type'],
-                required=field['required'],
-                description=force_unicode(field['description']),
+                dataType=field.get("type", "string"),
+                required=field.get("required", True),
+                description=force_unicode(field.get("description", "")),
             ))
 
         return parameters
@@ -259,8 +262,11 @@ class ResourceSwaggerMapping(object):
         }
 
     def build_extra_operation(self, extra_action):
+        if "name" not in extra_action:
+            raise LookupError("\"name\" is a required field in extra_actions.")
         return {
-            'httpMethod': extra_action['http_method'].upper(),
+            'summary': extra_action.get("summary", ""),
+            'httpMethod': extra_action.get('http_method', "get").upper(),
             'parameters': self.build_parameters_from_extra_action(
                 method=extra_action.get('http_method'),
                 fields=extra_action.get('fields'),
