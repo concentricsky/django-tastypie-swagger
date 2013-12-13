@@ -91,7 +91,7 @@ class ResourceSwaggerMapping(object):
 #            parameter.update({'allowableValues': allowed_values})
         return parameter
 
-    def build_parameters_from_fields(self):   
+    def build_parameters_from_fields(self):
         parameters = []
         for name, field in self.schema['fields'].items():
             # Ignore readonly fields
@@ -222,17 +222,20 @@ class ResourceSwaggerMapping(object):
         detail_uri_name = getattr(self.resource._meta, "detail_uri_name", "pk")
         return detail_uri_name == "pk" and "id" or detail_uri_name
 
-    def build_parameters_from_extra_action(self, method, fields):
+    def build_parameters_from_extra_action(self, method, fields, resource_type):
         parameters = []
-        if method.upper() == 'GET':
-            parameters.append(self.build_parameter(paramType='path', name=self._detail_uri_name(), dataType='int', description='ID of resource'))
+        if method.upper() == 'GET' or resource_type == "view":
+            parameters.append(self.build_parameter(paramType='path',
+                name=self._detail_uri_name(),
+                dataType='int',
+                description='ID of resource'))
         for name, field in fields.items():
             parameters.append(self.build_parameter(
                 paramType="query",
                 name=name,
-                dataType=field['type'],
-                required=field['required'],
-                description=force_unicode(field['description']),
+                dataType=field.get("type", "string"),
+                required=field.get("required", True),
+                description=force_unicode(field.get("description", "")),
             ))
 
         return parameters
@@ -259,9 +262,15 @@ class ResourceSwaggerMapping(object):
         }
 
     def build_extra_operation(self, extra_action):
+        if "name" not in extra_action:
+            raise LookupError("\"name\" is a required field in extra_actions.")
         return {
-            'httpMethod': extra_action['http_method'].upper(),
-            'parameters': self.build_parameters_from_extra_action(method=extra_action.get('http_method'), fields=extra_action.get('fields')),
+            'summary': extra_action.get("summary", ""),
+            'httpMethod': extra_action.get('http_method', "get").upper(),
+            'parameters': self.build_parameters_from_extra_action(
+                method=extra_action.get('http_method'),
+                fields=extra_action.get('fields'),
+                resource_type=extra_action.get("resource_type", "view")),
             'responseClass': 'Object', #TODO this should be extended to allow the creation of a custom object.
             'nickname': extra_action['name'],
         }
@@ -310,6 +319,10 @@ class ResourceSwaggerMapping(object):
                     'path': "%s{%s}/%s/" % (self.get_resource_base_uri(), identifier , extra_action.get('name')),
                     'operations': []
                 }
+
+                if extra_action.get("resource_type", "view") == "list":
+                    extra_api['path'] = "%s%s/" % (self.get_resource_base_uri(), extra_action.get('name'))
+
                 operation = self.build_extra_operation(extra_action)
                 extra_api['operations'].append(operation)
                 extra_apis.append(extra_api)
