@@ -93,8 +93,8 @@ Top level keys and meaning in the ``extra_actions`` dictionary:
   or perform actions across many items. If ``resource_type`` is ommitted and
   the ``http_method`` is ``"GET"`` then the endpoint will default to ``"view"``
   and include a ``{id}`` parameter in the uri and parameter list.
-- ``description``: Description of this endpoint.
-- ``fields``: Dictionary of parameters this endpoint accepts.
+- ``summary``: Description of this endpoint.
+- ``fields``: **Optional** Dictionary of parameters this endpoint accepts.
 
 Field dictionaries are declared in a ``{ "name": { [options dict] }`` style.
 This is done for compatability reasons with older versions of

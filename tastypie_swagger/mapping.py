@@ -284,7 +284,9 @@ class ResourceSwaggerMapping(object):
             'httpMethod': extra_action.get('http_method', "get").upper(),
             'parameters': self.build_parameters_from_extra_action(
                 method=extra_action.get('http_method'),
-                fields=extra_action.get('fields'),
+                # Default fields to an empty dictionary in the case that it
+                # is not set.
+                fields=extra_action.get('fields', {}),
                 resource_type=extra_action.get("resource_type", "view")),
             'responseClass': 'Object', #TODO this should be extended to allow the creation of a custom object.
             'nickname': extra_action['name'],
