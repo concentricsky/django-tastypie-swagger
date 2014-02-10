@@ -176,7 +176,7 @@ class ResourceSwaggerMapping(object):
                         related_mapping = ResourceSwaggerMapping(related_resource)
                         parameters.extend(related_mapping.build_parameters_from_filters(prefix="%s%s__" % (prefix, name)))
 
-                if isinstance( field, list ):
+                if isinstance(field, (list, tuple)):
                     # Skip if this is an incorrect filter
                     if name not in self.schema['fields']: continue
 
