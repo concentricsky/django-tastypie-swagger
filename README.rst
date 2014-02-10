@@ -26,22 +26,24 @@ Add to INSTALLED_APPS::
         ...
     ]
 
-Define **TASTYPIE_SWAGGER_API_MODULE** in your settings.  It should be a python path to your instance of tastypie.api.Api_::
 
-    TASTYPIE_SWAGGER_API_MODULE = 'mainsite.urls.api'
+You can enable documentation for several different api endpoints.
 
-Include in your urlconf with namespace **tastypie_swagger**::
-
+eg:
     urlpatterns = patterns('',
         ...
 
-        url(r'api/doc/', include('tastypie_swagger.urls', namespace='tastypie_swagger')),
+        url(r'api/myapi/doc/',
+          include('tastypie_swagger.urls', namespace='myapi_tastypie_swagger'),
+          kwargs={"tastypie_api_module":"myapp.registration.my_api", "namespace":"myapi_tastypie_swagger"}
+        ),
 
         ...
     )
 
+To declare more than one endpoint just repeat the above and make sure to change the namespace.
 
-Swagger documentation will be served up at the URL you configured.
+Swagger documentation will be served up at the URL(s) you configured.
 
 Using ``extra_actions``
 -----------------------
