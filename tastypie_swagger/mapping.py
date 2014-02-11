@@ -4,7 +4,7 @@ from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.encoding import force_unicode
 from tastypie import fields
 
-from .utils import trailing_slash_or_none, urljoin_forced
+from .utils import trailing_slash_or_none, urljoin_forced, is_sequence
 
 
 # Ignored POST fields
@@ -176,7 +176,7 @@ class ResourceSwaggerMapping(object):
                         related_mapping = ResourceSwaggerMapping(related_resource)
                         parameters.extend(related_mapping.build_parameters_from_filters(prefix="%s%s__" % (prefix, name)))
 
-                if isinstance( field, list ):
+                elif is_sequence(field):
                     # Skip if this is an incorrect filter
                     if name not in self.schema['fields']: continue
 
