@@ -29,7 +29,9 @@ Add to INSTALLED_APPS::
 
 You can enable documentation for several different api endpoints.
 
-eg:
+eg::
+
+  
     urlpatterns = patterns('',
         ...
 
@@ -40,6 +42,7 @@ eg:
 
         ...
     )
+
 
 To declare more than one endpoint just repeat the above and make sure to change the namespace.
 
