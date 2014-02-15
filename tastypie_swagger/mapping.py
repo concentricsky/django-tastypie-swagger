@@ -148,64 +148,67 @@ class ResourceSwaggerMapping(object):
                 ))
         if 'filtering' in self.schema and method.upper() == 'GET':
             for name, field in self.schema['filtering'].items():
-                # Integer value means this points to a related model
-                if field in [ALL, ALL_WITH_RELATIONS]:
-                    if field == ALL: #TODO: Show all possible ORM filters for this field
-                        #This code has been mostly sucked from the tastypie lib
-                        if getattr(self.resource._meta, 'queryset', None) is not None:
-                            # Get the possible query terms from the current QuerySet.
-                            if hasattr(self.resource._meta.queryset.query.query_terms, 'keys'):
-                                # Django 1.4 & below compatibility.
-                                field = self.resource._meta.queryset.query.query_terms.keys()
+                # Avoid infinite recursion for self referencing resource (issue #22)
+                if not prefix.startswith('{}__'.format(name)):
+                    # Integer value means this points to a related model
+                    if field in [ALL, ALL_WITH_RELATIONS]:
+                        if field == ALL: #TODO: Show all possible ORM filters for this field
+                            #This code has been mostly sucked from the tastypie lib
+                            if getattr(self.resource._meta, 'queryset', None) is not None:
+                                # Get the possible query terms from the current QuerySet.
+                                if hasattr(self.resource._meta.queryset.query.query_terms, 'keys'):
+                                    # Django 1.4 & below compatibility.
+                                    field = self.resource._meta.queryset.query.query_terms.keys()
+                                else:
+                                    # Django 1.5+.
+                                    field = self.resource._meta.queryset.query.query_terms
                             else:
-                                # Django 1.5+.
-                                field = self.resource._meta.queryset.query.query_terms
-                        else:
-                            if hasattr(QUERY_TERMS, 'keys'):
-                                # Django 1.4 & below compatibility.
-                                field = QUERY_TERMS.keys()
+                                if hasattr(QUERY_TERMS, 'keys'):
+                                    # Django 1.4 & below compatibility.
+                                    field = QUERY_TERMS.keys()
+                                else:
+                                    # Django 1.5+.
+                                    field = QUERY_TERMS
+
+                        elif field == ALL_WITH_RELATIONS: # Show all params from related model
+                            # Add a subset of filter only foreign-key compatible on the relation itself.
+                            # We assume foreign keys are only int based.
+                            field = ['gt','in','gte', 'lt', 'lte','exact'] # TODO This could be extended by checking the actual type of the relational field, but afaik it's also an issue on tastypie.
+                            related_resource = self.resource.fields[name].get_related_resource(None)
+                            related_mapping = ResourceSwaggerMapping(related_resource)
+
+                            parameters.extend(related_mapping.build_parameters_from_filters(prefix="%s%s__" % (prefix, name)))
+
+                    if isinstance(field, (list, tuple, set)):
+                        # Skip if this is an incorrect filter
+                        if name not in self.schema['fields']: continue
+
+                        schema_field = self.schema['fields'][name]
+                        for query in field:
+                            if query == 'exact':
+                                description = force_unicode(schema_field['help_text'])
+                                dataType = schema_field['type']
+                                # Use a better description for related models with exact filter
+                                if dataType == 'related':
+                                    # Assume that related pk is an integer
+                                    # TODO if youre not using integer ID for pk then we need to look this up somehow
+                                    dataType = 'integer'
+                                    description = 'ID of related resource'
+                                parameters.append(self.build_parameter(
+                                    paramType="query",
+                                    name="%s%s" % (prefix, name),
+                                    dataType=dataType,
+                                    required= False,
+                                    description=description,
+                                ))
                             else:
-                                # Django 1.5+.
-                                field = QUERY_TERMS
-
-                    elif field == ALL_WITH_RELATIONS: # Show all params from related model
-                        # Add a subset of filter only foreign-key compatible on the relation itself.
-                        # We assume foreign keys are only int based.
-                        field = ['gt','in','gte', 'lt', 'lte','exact'] # TODO This could be extended by checking the actual type of the relational field, but afaik it's also an issue on tastypie.
-                        related_resource = self.resource.fields[name].get_related_resource(None)
-                        related_mapping = ResourceSwaggerMapping(related_resource)
-                        parameters.extend(related_mapping.build_parameters_from_filters(prefix="%s%s__" % (prefix, name)))
-
-                if isinstance(field, (list, tuple, set)):
-                    # Skip if this is an incorrect filter
-                    if name not in self.schema['fields']: continue
-
-                    schema_field = self.schema['fields'][name]
-                    for query in field:
-                        if query == 'exact':
-                            description = force_unicode(schema_field['help_text'])
-                            dataType = schema_field['type']
-                            # Use a better description for related models with exact filter
-                            if dataType == 'related':
-                                # Assume that related pk is an integer
-                                # TODO if youre not using integer ID for pk then we need to look this up somehow
-                                dataType = 'integer'
-                                description = 'ID of related resource'
-                            parameters.append(self.build_parameter(
-                                paramType="query",
-                                name="%s%s" % (prefix, name),
-                                dataType=dataType,
-                                required= False,
-                                description=description,
-                            ))
-                        else:
-                            parameters.append(self.build_parameter(
-                                paramType="query",
-                                name="%s%s__%s" % (prefix, name, query),
-                                dataType=schema_field['type'],
-                                required= False,
-                                description=force_unicode(schema_field['help_text']),
-                            ))
+                                parameters.append(self.build_parameter(
+                                    paramType="query",
+                                    name="%s%s__%s" % (prefix, name, query),
+                                    dataType=schema_field['type'],
+                                    required= False,
+                                    description=force_unicode(schema_field['help_text']),
+                                ))
 
         return parameters
 
