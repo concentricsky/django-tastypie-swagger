@@ -17,6 +17,34 @@ ALL = 1
 # Enable all ORM filters, including across relationships
 ALL_WITH_RELATIONS = 2
 
+DJANGO_FIELD_TYPE = {
+    'AutoField': 'int',
+    'BigIntegerField': 'int',
+    'BinaryField': 'string',
+    'BooleanField': 'bool',
+    'CharField': 'string',
+    'CommaSeparatedIntegerField': 'int',
+    'DateField': 'date',
+    'DateTimeField': 'datetime',
+    'DecimalField': 'decimal',
+    'EmailField': 'string',
+    'FileField': 'string',
+    'FilePathField': 'string',
+    'FloatField': 'float',
+    'ImageField': 'string',
+    'IntegerField': 'int',
+    'IPAddressField': 'string',
+    'GenericIPAddressField': 'string',
+    'NullBooleanField': 'bool',
+    'PositiveIntegerField': 'int',
+    'PositiveSmallIntegerField': 'int',
+    'SlugField': 'string',
+    'SmallIntegerField': 'int',
+    'TextField': 'int',
+    'TimeField': 'time',
+    'URLField': 'string'
+}
+
 class ResourceSwaggerMapping(object):
     """
     Represents a mapping of a tastypie resource to a swagger API declaration
@@ -40,7 +68,21 @@ class ResourceSwaggerMapping(object):
     def __init__(self, resource):
         self.resource = resource
         self.resource_name = self.resource._meta.resource_name
+        self.resource_pk_type = self.get_pk_type()
         self.schema = self.resource.build_schema()
+
+    def get_pk_type(self):
+        django_internal_type = self.resource._meta.object_class._meta.pk.get_internal_type()
+        if django_internal_type in ('ManyToManyField', 'OneToOneField', 'ForeignKey'):
+            return DJANGO_FIELD_TYPE.get(self.resource._meta.object_class._meta.pk.related_field, 'unknown')
+        else:
+            return DJANGO_FIELD_TYPE.get(django_internal_type, 'unknown')
+
+    def get_related_field_type(self, field_name):
+        for field in self.resource._meta.object_class._meta.fields:
+            if field_name == field.name:
+                 return DJANGO_FIELD_TYPE.get(field.related_field.get_internal_type(), 'unknown')
+
 
     def get_resource_verbose_name(self, plural=False):
         qs = self.resource._meta.queryset
@@ -152,7 +194,7 @@ class ResourceSwaggerMapping(object):
                 if not prefix.startswith('{}__'.format(name)):
                     # Integer value means this points to a related model
                     if field in [ALL, ALL_WITH_RELATIONS]:
-                        if field == ALL: #TODO: Show all possible ORM filters for this field
+                        if field == ALL:
                             #This code has been mostly sucked from the tastypie lib
                             if getattr(self.resource._meta, 'queryset', None) is not None:
                                 # Get the possible query terms from the current QuerySet.
@@ -184,16 +226,17 @@ class ResourceSwaggerMapping(object):
                         if name not in self.schema['fields']: continue
 
                         schema_field = self.schema['fields'][name]
+
+                        dataType = schema_field['type']
+                        if dataType == 'related':
+                            dataType = self.get_related_field_type(name)
+                            description = 'ID of related resource'
+
                         for query in field:
                             if query == 'exact':
                                 description = force_unicode(schema_field['help_text'])
-                                dataType = schema_field['type']
+
                                 # Use a better description for related models with exact filter
-                                if dataType == 'related':
-                                    # Assume that related pk is an integer
-                                    # TODO if youre not using integer ID for pk then we need to look this up somehow
-                                    dataType = 'integer'
-                                    description = 'ID of related resource'
                                 parameters.append(self.build_parameter(
                                     paramType="query",
                                     name="%s%s" % (prefix, name),
@@ -205,7 +248,7 @@ class ResourceSwaggerMapping(object):
                                 parameters.append(self.build_parameter(
                                     paramType="query",
                                     name="%s%s__%s" % (prefix, name, query),
-                                    dataType=schema_field['type'],
+                                    dataType=dataType,
                                     required= False,
                                     description=force_unicode(schema_field['help_text']),
                                 ))
@@ -230,8 +273,8 @@ class ResourceSwaggerMapping(object):
         if method.upper() == 'GET' or resource_type == "view":
             parameters.append(self.build_parameter(paramType='path',
                 name=self._detail_uri_name(),
-                dataType='int',
-                description='ID of resource'))
+                dataType=self.resource_pk_type,
+                description='Primary key of resource'))
         for name, field in fields.items():
             parameters.append(self.build_parameter(
                 paramType="query",
@@ -262,7 +305,14 @@ class ResourceSwaggerMapping(object):
         operation = {
             'summary': self.get_operation_summary(detail=True, method=method),
             'httpMethod': method.upper(),
-            'parameters': [self.build_parameter(paramType='path', name=self._detail_uri_name(), dataType='int', description='ID of resource')],
+            'parameters': [
+                self.build_parameter(
+                    paramType='path',
+                    name=self._detail_uri_name(),
+                    dataType=self.resource_pk_type,
+                    description='Primary key of resource'
+                ),
+            ],
             'responseClass': self.resource_name,
             'nickname': '%s-detail' % self.resource_name,
             'notes': self.resource.__doc__,
