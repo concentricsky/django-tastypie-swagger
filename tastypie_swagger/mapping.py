@@ -270,7 +270,7 @@ class ResourceSwaggerMapping(object):
 
     def build_parameters_from_extra_action(self, method, fields, resource_type):
         parameters = []
-        if method.upper() == 'GET' or resource_type == "view":
+        if resource_type == "view":
             parameters.append(self.build_parameter(paramType='path',
                 name=self._detail_uri_name(),
                 dataType=self.resource_pk_type,
