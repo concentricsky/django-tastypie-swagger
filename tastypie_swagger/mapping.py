@@ -343,6 +343,7 @@ class ResourceSwaggerMapping(object):
                 resource_type=extra_action.get("resource_type", "view")),
             'responseClass': 'Object', #TODO this should be extended to allow the creation of a custom object.
             'nickname': extra_action['name'],
+            'notes': extra_action.get('notes', ''),
         }
 
     def build_detail_api(self):
