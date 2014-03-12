@@ -419,8 +419,10 @@ class ResourceSwaggerMapping(object):
 
     def build_properties_from_fields(self, method='get'):
         properties = {}
-
+        excludes = getattr(self.resource._meta, 'excludes', [])
         for name, field in self.schema['fields'].items():
+            if name in excludes:
+                continue
             # Exclude fields from custom put / post object definition
             if method in ['post','put']:
                 if name in self.WRITE_ACTION_IGNORED_FIELDS:
