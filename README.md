@@ -22,8 +22,9 @@ This package provides two things:
 
 ## Version History
 
-- v1.0.11 Various bug fixes and style changes
-- v1.0.0 Public codebase was released
+- v0.1.3 Various bug fixes and documentation updates
+- v0.1.2 Fixes for Django 1.5 compatibility
+- v0.1.1 Public codebase was released
 
 
 ## Documentation
