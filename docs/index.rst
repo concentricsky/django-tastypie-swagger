@@ -134,7 +134,28 @@ Tastypie 0.9.11 **ModelResource** fields do not respect the *blank* attribute on
 You can use `this ModelResource subclass <https://gist.github.com/4041352>`_ as a workaround to this issue.
 
 
+License
+==========
 
+Copyright © Concentric Sky, Inc. 
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+About Concentric Sky
+====================
+
+For nearly a decade, Concentric Sky has been building technology solutions that impact people everywhere. We work in the mobile, enterprise and web application spaces. Our team, based in Eugene Oregon, loves to solve complex problems. Concentric Sky believes in contributing back to our community and one of the ways we do that is by open sourcing our code on GitHub. Contact Concentric Sky at hello@concentricsky.com.
 
 
 .. _Swagger: http://swagger.wordnik.com/
@@ -151,10 +172,4 @@ You can use `this ModelResource subclass <https://gist.github.com/4041352>`_ as 
 
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 
