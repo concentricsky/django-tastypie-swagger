@@ -81,7 +81,13 @@ class ResourceSwaggerMapping(object):
     def get_related_field_type(self, field_name):
         for field in self.resource._meta.object_class._meta.fields:
             if field_name == field.name:
-                 return DJANGO_FIELD_TYPE.get(field.related_field.get_internal_type(), 'unknown')
+                try:
+                   related_field_type = field.related_field.get_internal_type()
+                except AttributeError as e:
+                    #Compatibilty code for django < 1.6
+                    related_field_type = field.rel.get_related_field().get_internal_type()
+
+                return DJANGO_FIELD_TYPE.get(related_field_type, 'unknown')
 
 
     def get_resource_verbose_name(self, plural=False):
@@ -122,7 +128,7 @@ class ResourceSwaggerMapping(object):
         parameter = {
             'paramType': paramType,
             'name': name,
-            'dataType': dataType,
+            'dataType': dataType if dataType is not None else 'unknown',
             'required': required,
             'description': description,
         }
@@ -191,7 +197,7 @@ class ResourceSwaggerMapping(object):
         if 'filtering' in self.schema and method.upper() == 'GET':
             for name, field in self.schema['filtering'].items():
                 # Avoid infinite recursion for self referencing resource (issue #22)
-                if not prefix.startswith('{}__'.format(name)):
+                if not prefix.find('{}__'.format(name)) >= 0:
                     # Integer value means this points to a related model
                     if field in [ALL, ALL_WITH_RELATIONS]:
                         if field == ALL:
