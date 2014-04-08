@@ -26,9 +26,13 @@ Add to INSTALLED_APPS::
         ...
     ]
 
-Define **TASTYPIE_SWAGGER_API_MODULE** in your settings.  It should be a python path to your instance of tastypie.api.Api_::
+Define **TASTYPIE_SWAGGER** in your ``settings.py`` as a dictionary.  It should
+define a key ``API_MODULE`` which is a python path to your instance of
+tastypie.api.Api_::
 
-    TASTYPIE_SWAGGER_API_MODULE = 'mainsite.urls.api'
+    TASTYPIE_SWAGGER = {
+        'API_MODULE': 'mainsite.urls.api',
+    }
 
 Include in your urlconf with namespace **tastypie_swagger**::
 
@@ -46,38 +50,38 @@ Swagger documentation will be served up at the URL you configured.
 Configuration
 -------------------------
 
-The following configuration variables can be set inside ``settings.py`` to
-configure this application.
+The following configuration variables can be set inside the ``TASTYPIE_SWAGGER``
+dict in ``settings.py`` to configure this application.
 
-TASTYPIE_SWAGGER_APP_NAME
+APP_NAME
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Default: ``'swagger'``
 
 Changes the name of the application in the documentation view. This is also used in the title of the documentation view in the form of ``{{ NAME|title }} API Documentation``.
 
-TASTYPIE_SWAGGER_APP_LINK
+APP_LINK
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Default: ``'/'``
 
 Changes where the application name is linked to in the documentation view.
 
-TASTYPIE_SWAGGER_SHOW_DEV
+SHOW_DEV
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Default: ``False``
 
 Show or hide the example documentation links.
 
-TASTYPIE_SWAGGER_KEY_NAME
+KEY_NAME
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Default: ``'apiKey'``
 
 Change the name of the api key that will be passed to requests.
 
-TASTYPIE_SWAGGER_API_KEY
+API_KEY
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Default: ``''`` (empty string)

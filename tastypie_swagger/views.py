@@ -9,18 +9,30 @@ from django.conf import settings
 
 from .mapping import ResourceSwaggerMapping
 
+# Update settings
+DEFAULT_SETTINGS = {
+    'API_MODULE': None
+    'APP_NAME': 'swagger',
+    'APP_LINK': '/',
+    'SHOW_DEV': False,
+    'KEY_NAME': 'apiKey',
+    'API_KEY': '',
+}
+
+SETTINGS = getattr(settings, TASTYPIE_SWAGGER, {})
+SETTINGS.update(DEFAULT_SETTINGS)
 
 class TastypieApiMixin(object):
     """
     Provides views with a 'tastypie_api' attr representing a tastypie.api.Api instance
 
-    Python path must be defined in settings as TASTYPIE_SWAGGER_API_MODULE
+    Python path must be defined in settings as API_MODULE
     """
     def __init__(self, *args, **kwargs):
         super(TastypieApiMixin, self).__init__(*args, **kwargs)
-        tastypie_api_module = getattr(settings, 'TASTYPIE_SWAGGER_API_MODULE', None)
+        tastypie_api_module = SETTINGS['API_MODULE']
         if not tastypie_api_module:
-            raise ImproperlyConfigured("Must define TASTYPIE_SWAGGER_API_MODULE in settings as path to a tastypie.api.Api instance")
+            raise ImproperlyConfigured("Must define API_MODULE in settings as path to a tastypie.api.Api instance")
         path, attr = tastypie_api_module.rsplit('.', 1)
         try:
             tastypie_api = getattr(sys.modules[path], attr, None)
@@ -74,11 +86,11 @@ class SwaggerView(TastypieApiMixin, TemplateView):
     def get_context_data(self, *args, **kwargs):
         context = super(SwaggerView, self).get_context_data(*args, **kwargs)
         context.update({
-            "APP_NAME": getattr(settings, "TASTYPIE_SWAGGER_APP_NAME", "swagger"),
-            "APP_LINK": getattr(settings, "TASTYPIE_SWAGGER_APP_LINK", "/"),
-            "SHOW_DEV": getattr(settings, "TASTYPIE_SWAGGER_SHOW_DEV", False),
-            "KEY_NAME": getattr(settings, "TASTYPIE_SWAGGER_KEY_NAME", "apiKey"),
-            "API_KEY": getattr(settings, "TASTYPIE_SWAGGER_API_KEY", ""),
+            "APP_NAME": SETTINGS['APP_NAME'],
+            "APP_LINK": SETTINGS['APP_LINK'],
+            "SHOW_DEV": SETTINGS['SHOW_DEV'],
+            "KEY_NAME": SETTINGS['KEY_NAME'],
+            "API_KEY": SETTINGS['API_KEY'],
         })
         return context
 
