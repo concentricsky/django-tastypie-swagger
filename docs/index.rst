@@ -55,7 +55,8 @@ eg::
 - The ``namespace`` is repeated on purpose to go around some limitations and should be unique amongst the other
 urls you have defined.
 
-- The ``tastypie_api_module`` is a string containing the full path to you tastypie api object instance.
+- The ``tastypie_api_module`` is either your tastypie api instance or a string containing the full path to your
+tastypie api instance.
 
 To declare more than one endpoint, repeat the above URL definition and change the namespace.
 
