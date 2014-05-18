@@ -283,7 +283,7 @@ class ResourceSwaggerMapping(object):
                 description='Primary key of resource'))
         for name, field in fields.items():
             parameters.append(self.build_parameter(
-                paramType="query",
+                paramType=field.get("param_type", "query"),
                 name=name,
                 dataType=field.get("type", "string"),
                 required=field.get("required", True),
@@ -349,6 +349,7 @@ class ResourceSwaggerMapping(object):
                 resource_type=extra_action.get("resource_type", "view")),
             'responseClass': 'Object', #TODO this should be extended to allow the creation of a custom object.
             'nickname': extra_action['name'],
+            'notes': extra_action.get('notes', ''),
         }
 
     def build_detail_api(self):
@@ -424,8 +425,10 @@ class ResourceSwaggerMapping(object):
 
     def build_properties_from_fields(self, method='get'):
         properties = {}
-
+        excludes = getattr(self.resource._meta, 'excludes', [])
         for name, field in self.schema['fields'].items():
+            if name in excludes:
+                continue
             # Exclude fields from custom put / post object definition
             if method in ['post','put']:
                 if name in self.WRITE_ACTION_IGNORED_FIELDS:
