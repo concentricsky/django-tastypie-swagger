@@ -1,0 +1,3 @@
+See https://github.com/toastdriven/django-tastypie/blob/master/tox.ini for inspiration
+Also: https://github.com/toastdriven/django-tastypie/search?q=ROOT_URLCONF&ref=cmdform on how they bootstrap the various
+different settings and testing app.
