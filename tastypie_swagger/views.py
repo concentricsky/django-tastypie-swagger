@@ -169,6 +169,8 @@ class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
                 )[:-1],#TODO find a better way to remove the trailing slash
             'resourcePath': '/{}'.format(resource_name),
             #TODO deal with this as next step, the path attribute should be fixed.
+            # see: https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md#522-api-object
+            # then keep on doing with : https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md#52-api-declaration
             'apis': mapping.build_apis(),
             'models': mapping.build_models()
         })
