@@ -1,1 +1,1 @@
-__author__ = 'john'
+# from swagger_tests import *

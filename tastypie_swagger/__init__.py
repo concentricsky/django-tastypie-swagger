@@ -1,1 +1,2 @@
 VERSION = (0, 1, 3)
+SWAGGER_VERSION = "1.2"

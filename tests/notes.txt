@@ -1,3 +1,6 @@
 See https://github.com/toastdriven/django-tastypie/blob/master/tox.ini for inspiration
 Also: https://github.com/toastdriven/django-tastypie/search?q=ROOT_URLCONF&ref=cmdform on how they bootstrap the various
 different settings and testing app.
+
+We should tests against: https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md
+So we should migrate to 1.2 at the same time we implement tests.

@@ -1,10 +1,12 @@
 import sys
 import json
 
+from django.conf import settings
 from django.views.generic import TemplateView
 from django.http import HttpResponse, Http404
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
+from django.utils.translation import ugettext_lazy as _
 
 import tastypie
 
@@ -48,12 +50,23 @@ class SwaggerApiDataMixin(object):
     Provides required API context data
     """
 
+    def generate_api_info(self):
+        return {
+            'title': settings.TASTYPIE_SWAGGER_SETTINGS.get('title', ''),
+            'description': settings.TASTYPIE_SWAGGER_SETTINGS.get('description', ''),
+            'termsOfServiceUrl': settings.TASTYPIE_SWAGGER_SETTINGS.get('terms_of_service_url', ''),
+            'contact': settings.TASTYPIE_SWAGGER_SETTINGS.get('contact', ''),
+            'license': settings.TASTYPIE_SWAGGER_SETTINGS.get('license', ''),
+            'licenseUrl': settings.TASTYPIE_SWAGGER_SETTINGS.get('license_url', ''),
+        }
+
     def get_context_data(self, *args, **kwargs):
+        from . import SWAGGER_VERSION
         context = super(SwaggerApiDataMixin, self).get_context_data(*args, **kwargs)
         context.update({
-            # TODO: How should versions be controlled?
-            'apiVersion': '0.1',
-            'swaggerVersion': '1.1',
+            'apiVersion': self.kwargs.get('api_version', '0.1'),
+            'swaggerVersion': SWAGGER_VERSION,
+            'logo_url': settings.TASTYPIE_SWAGGER_SETTINGS.get('LOGO_URL', )
         })
         return context
 
@@ -92,7 +105,20 @@ class SwaggerView(TastypieApiMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(SwaggerView, self).get_context_data(**kwargs)
-        context['discovery_url'] = reverse('%s:resources' % self.kwargs.get('namespace'))
+
+        context.update({
+            'api_docs_url' : reverse('%s:api-docs' % self.kwargs.get('namespace')),
+            'app_name': settings.TASTYPIE_SWAGGER_SETTINGS.get('app_name', 'swagger'),
+            'logo_url': settings.TASTYPIE_SWAGGER_SETTINGS.get('logo_url', None),
+            'app_url': settings.TASTYPIE_SWAGGER_SETTINGS.get('app_url', ''), #TODO Make sure the default is ok
+            'show_swagger_demo_icons': settings.TASTYPIE_SWAGGER_SETTINGS.get('show_swagger_demo_icons', False),
+            'supported_submit_methods': json.dumps(settings.TASTYPIE_SWAGGER_SETTINGS.get('supported_submit_methods',
+                                                                                      ['get','post','put','delete'])),
+            'doc_expansion': settings.TASTYPIE_SWAGGER_SETTINGS.get('doc_expansion', 'none'),
+            'boolean_values': json.dumps(settings.TASTYPIE_SWAGGER_SETTINGS.get('boolean_values', [True, False])),
+            'use_minimized_js': settings.TASTYPIE_SWAGGER_SETTINGS.get('use_minimized_js', False)
+        })
+
         return context
 
 
@@ -109,7 +135,8 @@ class ResourcesView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
         # Construct schema endpoints from resources
         apis = [{'path': '/%s' % name} for name in sorted(self.tastypie_api._registry.keys())]
         context.update({
-            'basePath': self.request.build_absolute_uri(reverse('%s:schema' % self.kwargs.get('namespace'))),
+            # We remove last char as it should be a /, not really reliable but will make it for now.
+            'basePath': self.request.build_absolute_uri(reverse('%s:schema' % self.kwargs.get('namespace')))[:-1],
             'apis': apis,
         })
         return context
@@ -134,7 +161,14 @@ class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
 
         context = super(SchemaView, self).get_context_data(*args, **kwargs)
         context.update({
-            'basePath': '/',
+            'basePath': self.request.build_absolute_uri(
+                    reverse(
+                        'api_{}_top_level'.format(self.tastypie_api.api_name),
+                        kwargs={'api_name': self.tastypie_api.api_name}
+                    )
+                )[:-1],#TODO find a better way to remove the trailing slash
+            'resourcePath': '/{}'.format(resource_name),
+            #TODO deal with this as next step, the path attribute should be fixed.
             'apis': mapping.build_apis(),
             'models': mapping.build_models()
         })

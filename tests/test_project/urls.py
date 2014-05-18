@@ -14,6 +14,6 @@ urlpatterns = patterns('',
     url(r'', include(test_app_urls)),
     url(r'api/v1/doc/',
       include('tastypie_swagger.urls', namespace='tastypie_swagger'),
-      kwargs={"tastypie_api_module":test_app_urls.v1_api, "namespace":"tastypie_swagger"}
+      kwargs={"tastypie_api_module":test_app_urls.v1_api, "namespace":"tastypie_swagger", "api_version": "1.4"}
     ),
 )
