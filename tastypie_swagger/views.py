@@ -5,7 +5,8 @@ from django.views.generic import TemplateView
 from django.http import HttpResponse, Http404
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
-from django.conf import settings
+
+import tastypie
 
 from .mapping import ResourceSwaggerMapping
 
@@ -26,13 +27,17 @@ class TastypieApiMixin(object):
             tastypie_api_module = self.kwargs.get('tastypie_api_module', None)
             if not tastypie_api_module:
                 raise ImproperlyConfigured("tastypie_api_module must be defined as an extra parameters in urls.py with its value being a path to a tastypie.api.Api instance.")
-            path, attr = tastypie_api_module.rsplit('.', 1)
-            try:
-                tastypie_api = getattr(sys.modules[path], attr, None)
-            except KeyError:
-                raise ImproperlyConfigured("%s is not a valid python path" % path)
-            if not tastypie_api:
-                raise ImproperlyConfigured("%s is not a valid tastypie.api.Api instance" % tastypie_api_module)
+
+            if isinstance(tastypie_api_module, tastypie.api.Api):
+                tastypie_api = tastypie_api_module
+            else:
+                path, attr = tastypie_api_module.rsplit('.', 1)
+                try:
+                    tastypie_api = getattr(sys.modules[path], attr, None)
+                except KeyError:
+                    raise ImproperlyConfigured("%s is not a valid python path" % path)
+                if not tastypie_api:
+                    raise ImproperlyConfigured("%s is not a valid tastypie.api.Api instance" % tastypie_api_module)
 
             self._tastypie_api = tastypie_api
 
@@ -63,6 +68,9 @@ class JSONView(TemplateView):
         """
         Returns a response with a template rendered with the given context.
         """
+
+        # This cannot be serialized if it is a api instance and we don't need it anyway.
+        context.pop('tastypie_api_module')
 
         for k in ['params','view']:
             if k in context:
