@@ -17,34 +17,6 @@ ALL = 1
 # Enable all ORM filters, including across relationships
 ALL_WITH_RELATIONS = 2
 
-DJANGO_FIELD_TYPE = {
-    'AutoField': 'int',
-    'BigIntegerField': 'int',
-    'BinaryField': 'string',
-    'BooleanField': 'bool',
-    'CharField': 'string',
-    'CommaSeparatedIntegerField': 'int',
-    'DateField': 'date',
-    'DateTimeField': 'datetime',
-    'DecimalField': 'decimal',
-    'EmailField': 'string',
-    'FileField': 'string',
-    'FilePathField': 'string',
-    'FloatField': 'float',
-    'ImageField': 'string',
-    'IntegerField': 'int',
-    'IPAddressField': 'string',
-    'GenericIPAddressField': 'string',
-    'NullBooleanField': 'bool',
-    'PositiveIntegerField': 'int',
-    'PositiveSmallIntegerField': 'int',
-    'SlugField': 'string',
-    'SmallIntegerField': 'int',
-    'TextField': 'int',
-    'TimeField': 'time',
-    'URLField': 'string'
-}
-
 class ResourceSwaggerMapping(object):
     """
     Represents a mapping of a tastypie resource to a swagger API declaration
@@ -71,24 +43,22 @@ class ResourceSwaggerMapping(object):
         self.resource_pk_type = self.get_pk_type()
         self.schema = self.resource.build_schema()
 
-    def get_pk_type(self):
-        django_internal_type = self.resource._meta.object_class._meta.pk.get_internal_type()
-        if django_internal_type in ('ManyToManyField', 'OneToOneField', 'ForeignKey'):
-            return DJANGO_FIELD_TYPE.get(self.resource._meta.object_class._meta.pk.related_field, 'unknown')
+    def _get_native_field_type(self, field):
+        if getattr(field, 'is_related', False) and field.is_related:
+            if getattr(field, 'is_m2m', False) and field.is_m2m:
+                return 'list'
+            else:
+                return field.to_class.base_fields.get('id').dehydrated_type
         else:
-            return DJANGO_FIELD_TYPE.get(django_internal_type, 'unknown')
+            return field.dehydrated_type
 
-    def get_related_field_type(self, field_name):
-        for field in self.resource._meta.object_class._meta.fields:
-            if field_name == field.name:
-                try:
-                   related_field_type = field.related_field.get_internal_type()
-                except AttributeError as e:
-                    #Compatibilty code for django < 1.6
-                    related_field_type = field.rel.get_related_field().get_internal_type()
+    def get_pk_type(self):
+        return self._get_native_field_type(self.resource.id)
 
-                return DJANGO_FIELD_TYPE.get(related_field_type, 'unknown')
-
+    def get_related_field_type(self, related_field_name):
+        for field_name, field in self.resource.base_fields.items():
+            if related_field_name == field_name:
+                return self._get_native_field_type(field)
 
     def get_resource_verbose_name(self, plural=False):
         qs = self.resource._meta.queryset
