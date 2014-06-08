@@ -1,12 +1,14 @@
 import datetime
-from django.core.urlresolvers import reverse
+import logging
+
 from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.encoding import force_unicode
+
 from tastypie import fields
 
 from .utils import trailing_slash_or_none, urljoin_forced
 
-
+logger = logging.getLogger(__name__)
 # Ignored POST fields
 IGNORED_FIELDS = ['id', ]
 
@@ -44,7 +46,10 @@ class ResourceSwaggerMapping(object):
         self.schema = self.resource.build_schema()
 
     def _get_native_field_type(self, field):
-        if getattr(field, 'is_related', False) and field.is_related:
+        if not field:
+            logger.warning('No id field found for resource:{}'.format(self.resource))
+            return 'undefined'
+        elif getattr(field, 'is_related', False) and field.is_related:
             if getattr(field, 'is_m2m', False) and field.is_m2m:
                 return 'list'
             else:
@@ -53,7 +58,7 @@ class ResourceSwaggerMapping(object):
             return field.dehydrated_type
 
     def get_pk_type(self):
-        return self._get_native_field_type(self.resource.id)
+        return self._get_native_field_type(self.resource.id if self.resource.id else self.resource.fields.get('id'))
 
     def get_related_field_type(self, related_field_name):
         for field_name, field in self.resource.base_fields.items():
