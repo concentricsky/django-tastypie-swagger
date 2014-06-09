@@ -53,7 +53,9 @@ class ResourceSwaggerMapping(object):
             if getattr(field, 'is_m2m', False) and field.is_m2m:
                 return 'list'
             else:
-                return field.to_class.base_fields.get('id').dehydrated_type
+                related_id_field = field.to_class.base_fields.get('id')
+                if related_id_field:
+                    return related_id_field.dehydrated_type
         else:
             return field.dehydrated_type
 
