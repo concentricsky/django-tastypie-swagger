@@ -58,7 +58,7 @@ class ResourceSwaggerMapping(object):
             return field.dehydrated_type
 
     def get_pk_type(self):
-        return self._get_native_field_type(self.resource.id if self.resource.id else self.resource.fields.get('id'))
+        return self._get_native_field_type(getattr(self.resource, 'id', self.resource.fields.get('id', None)))
 
     def get_related_field_type(self, related_field_name):
         for field_name, field in self.resource.base_fields.items():
