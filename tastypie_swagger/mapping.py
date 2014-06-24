@@ -47,7 +47,7 @@ class ResourceSwaggerMapping(object):
 
     def _get_native_field_type(self, field):
         if not field:
-            logger.warning('No id field found for resource:{}'.format(self.resource))
+            logger.warning('No id field found for resource:{0}'.format(self.resource))
             return 'undefined'
         elif getattr(field, 'is_related', False) and field.is_related:
             if getattr(field, 'is_m2m', False) and field.is_m2m:
@@ -174,7 +174,7 @@ class ResourceSwaggerMapping(object):
         if 'filtering' in self.schema and method.upper() == 'GET':
             for name, field in self.schema['filtering'].items():
                 # Avoid infinite recursion for self referencing resource (issue #22)
-                if not prefix.find('{}__'.format(name)) >= 0:
+                if not prefix.find('{0}__'.format(name)) >= 0:
                     # Integer value means this points to a related model
                     if field in [ALL, ALL_WITH_RELATIONS]:
                         if field == ALL:
