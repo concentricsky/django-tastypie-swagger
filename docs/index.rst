@@ -35,6 +35,7 @@ Add to INSTALLED_APPS::
         ...
     ]
 
+    VERSION = '0.1'
 
 Enable documentation for an api endpoint by adding a URL to your urlpatterns.
 
@@ -140,7 +141,7 @@ You can use `this ModelResource subclass <https://gist.github.com/4041352>`_ as 
 
 
 License
-==========
+=======
 
 Copyright © Concentric Sky, Inc. 
 

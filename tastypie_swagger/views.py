@@ -1,6 +1,7 @@
 import sys
 import json
 
+from django.conf import settings
 from django.views.generic import TemplateView
 from django.http import HttpResponse, Http404
 from django.core.exceptions import ImproperlyConfigured
@@ -43,6 +44,7 @@ class TastypieApiMixin(object):
 
         return self._tastypie_api
 
+
 class SwaggerApiDataMixin(object):
     """
     Provides required API context data
@@ -51,8 +53,7 @@ class SwaggerApiDataMixin(object):
     def get_context_data(self, *args, **kwargs):
         context = super(SwaggerApiDataMixin, self).get_context_data(*args, **kwargs)
         context.update({
-            # TODO: How should versions be controlled?
-            'apiVersion': '0.1',
+            'apiVersion': getattr(settings, "VERSION", "Unknown"),
             'swaggerVersion': '1.1',
         })
         return context
@@ -72,7 +73,7 @@ class JSONView(TemplateView):
         # This cannot be serialized if it is a api instance and we don't need it anyway.
         context.pop('tastypie_api_module')
 
-        for k in ['params','view']:
+        for k in ['params', 'view']:
             if k in context:
                 del context[k]
 
