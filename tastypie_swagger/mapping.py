@@ -68,11 +68,19 @@ class ResourceSwaggerMapping(object):
                 return self._get_native_field_type(field)
 
     def get_resource_verbose_name(self, plural=False):
+        """Retrieve the verbose name for the resource from the queryset model.
+
+        If the resource is not a ModelResource, use either
+        ``resource_name`` or ``resource_name_plural``.
+        """
         qs = self.resource._meta.queryset
         if qs is not None and hasattr(qs, 'model'):
             meta = qs.model._meta
-            verbose_name = plural and meta.verbose_name_plural or meta.verbose_name
+            verbose_name = meta.verbose_name_plural if plural else meta.verbose_name
             return verbose_name.lower()
+
+        if plural and getattr(self.resource._meta, 'resource_name_plural', ""):
+            return self.resource._meta.resource_name_plural
         return self.resource_name
 
     def get_operation_summary(self, detail=True, method='get'):
