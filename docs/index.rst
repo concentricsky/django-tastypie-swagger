@@ -35,8 +35,6 @@ Add to INSTALLED_APPS::
         ...
     ]
 
-    VERSION = '0.1'
-
 Enable documentation for an api endpoint by adding a URL to your urlpatterns.
 
 eg::
@@ -178,7 +176,3 @@ For nearly a decade, Concentric Sky has been building technology solutions that 
 
 .. toctree::
    :maxdepth: 2
-
-
-
-

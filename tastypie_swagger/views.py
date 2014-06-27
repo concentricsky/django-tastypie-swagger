@@ -1,7 +1,6 @@
 import sys
 import json
 
-from django.conf import settings
 from django.views.generic import TemplateView
 from django.http import HttpResponse, Http404
 from django.core.exceptions import ImproperlyConfigured
