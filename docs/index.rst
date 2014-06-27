@@ -47,7 +47,10 @@ eg::
 
         url(r'api/myapi/doc/',
           include('tastypie_swagger.urls', namespace='myapi_tastypie_swagger'),
-          kwargs={"tastypie_api_module":"myapp.registration.my_api", "namespace":"myapi_tastypie_swagger"}
+          kwargs={
+              "tastypie_api_module":"myapp.registration.my_api",
+              "namespace":"myapi_tastypie_swagger",
+              "version": "0.1"}
         ),
 
         ...
