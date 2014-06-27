@@ -52,7 +52,7 @@ class SwaggerApiDataMixin(object):
     def get_context_data(self, *args, **kwargs):
         context = super(SwaggerApiDataMixin, self).get_context_data(*args, **kwargs)
         context.update({
-            'apiVersion': self.kwargs.get('version', 'Unknown'),
+            'apiVersion': getattr(settings, "VERSION", "Unknown"),
             'swaggerVersion': '1.2',
         })
         return context
@@ -70,7 +70,7 @@ class JSONView(TemplateView):
         """
 
         # This cannot be serialized if it is a api instance and we don't need it anyway.
-        context.pop('tastypie_api_module', None)
+        context['params'].pop('tastypie_api_module')
 
         for k in ['params', 'view']:
             if k in context:

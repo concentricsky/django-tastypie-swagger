@@ -132,6 +132,77 @@ Available keys and meaning for the ``fields`` dictionary:
   parameter.
 
 
+Using ``extra_models``
+----------------------
+
+Sometimes is useful to pass some extra information to a request using JSON.
+This is done by defining an ``extra_models`` dictionary in the ``Meta``
+class inside your *ModelResource* class. Each extra model must have ``properties``
+and ``id``. The first itself is a nested dictionary, and the value in this
+dictionary must contain a ``type`` and ``description`` for that key.
+
+For example, if the user needs to provide an optional "reason" for a certain API
+action (e.g. a service deactivation), using it is as simple as:
+
+::
+
+    class Meta:
+        ...
+        extra_models = {
+            "deactivation": {
+                "id" : "deactivation",
+                "properties": {
+                    "reason": {"type": "string", "description": "Optional reason for query"},
+                }
+            },
+        }
+
+This new piece of the API is set as a ``field`` in the relative ``extra_actions``
+entry:
+
+ ::
+
+    from tastypie_swagger.utils import trailing_slash_or_none
+
+    ...
+
+    {
+        "name": "deactivation",
+        "http_method": "PUT",
+        "resource_type": "list",
+        "summary": "Endpoint for deactivating a service subscription",
+        "path": "{id}/deactivate/{sub_service_id}%s" % trailing_slash_or_none(),
+        "fields": {
+            "id": {
+                "param_type": 'path',
+                "name": "id",
+                "type": 'int',
+                "description": 'ID of subscription resource'
+            },
+            "sub_service_id": {
+                "param_type": 'path',
+                "name": "sub_service_id",
+                "type": 'int',
+                "description": 'ID of sub service resource'
+            },
+            "deactivation": {
+                "param_type": 'body',
+                "name": "deactivation",
+                "type": "deactivation",
+                "description": "Extra information on the deactivation"
+            }
+        },
+        "response_class": "subscription",
+    }
+
+This example introduces few modifications to the ``extra_actions`` previously
+defined:
+
+- ``path``: indicates which of the ``fields`` will be embedded in the API path
+- ``param_type``: distinguishes the ``path`` parameters (in the API path)
+  from the ``body`` parameters (passed as JSON in the request's body)
+- ``response_class``:
+
 Detecting required fields
 -------------------------
 
