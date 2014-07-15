@@ -202,7 +202,7 @@ class ResourceSwaggerMapping(object):
                             related_resource = self.resource.fields[name].get_related_resource(None)
                             related_mapping = ResourceSwaggerMapping(related_resource)
 
-                            parameters.extend(related_mapping.build_parameters_from_filters(prefix="%s%s__" % (prefix, name)))
+                            #parameters.extend(related_mapping.build_parameters_from_filters(prefix="%s%s__" % (prefix, name)))
 
                     if isinstance(field, (list, tuple, set)):
                         # Skip if this is an incorrect filter
