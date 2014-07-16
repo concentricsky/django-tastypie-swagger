@@ -136,6 +136,7 @@ class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
         context.update({
             'basePath': '/',
             'apis': mapping.build_apis(),
-            'models': mapping.build_models()
+            'models': mapping.build_models(),
+            'resourcePath': '/%s.{format}' % resource._meta.resource_name
         })
         return context
