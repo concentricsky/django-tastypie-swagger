@@ -297,7 +297,7 @@ class ResourceSwaggerMapping(object):
                 ),
             ],
             'responseClass': self.resource_name,
-            'nickname': '%s-detail' % self.resource_name,
+            'nickname': '%s_detail' % self.resource_name,
             'notes': self.resource.__doc__,
         }
         return operation
@@ -308,7 +308,7 @@ class ResourceSwaggerMapping(object):
             'httpMethod': method.upper(),
             'parameters': self.build_parameters_for_list(method=method),
             'responseClass': 'ListView' if method.upper() == 'GET' else self.resource_name,
-            'nickname': '%s-list' % self.resource_name,
+            'nickname': '%s_list' % self.resource_name,
             'notes': self.resource.__doc__,
         }
 
