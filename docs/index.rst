@@ -35,7 +35,6 @@ Add to INSTALLED_APPS::
         ...
     ]
 
-
 Enable documentation for an api endpoint by adding a URL to your urlpatterns.
 
 eg::
@@ -46,7 +45,10 @@ eg::
 
         url(r'api/myapi/doc/',
           include('tastypie_swagger.urls', namespace='myapi_tastypie_swagger'),
-          kwargs={"tastypie_api_module":"myapp.registration.my_api", "namespace":"myapi_tastypie_swagger"}
+          kwargs={
+              "tastypie_api_module":"myapp.registration.my_api",
+              "namespace":"myapi_tastypie_swagger",
+              "version": "0.1"}
         ),
 
         ...
@@ -140,7 +142,7 @@ You can use `this ModelResource subclass <https://gist.github.com/4041352>`_ as 
 
 
 License
-==========
+=======
 
 Copyright © Concentric Sky, Inc. 
 
@@ -174,7 +176,3 @@ For nearly a decade, Concentric Sky has been building technology solutions that 
 
 .. toctree::
    :maxdepth: 2
-
-
-
-
