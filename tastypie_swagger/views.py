@@ -70,7 +70,7 @@ class JSONView(TemplateView):
         """
 
         # This cannot be serialized if it is a api instance and we don't need it anyway.
-        context.pop('tastypie_api_module')
+        context.pop('tastypie_api_module', None)
 
         for k in ['params','view']:
             if k in context:
