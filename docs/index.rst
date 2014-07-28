@@ -81,7 +81,7 @@ called ``extra_actions``. Following the Tastypie search example, here is how
                 "name": "search",
                 "http_method": "GET",
                 "resource_type": "list",
-                "description": "Seach endpoint",
+                "description": "Search endpoint",
                 "fields": {
                     "q": {
                         "type": "string",
