@@ -52,7 +52,7 @@ class SwaggerApiDataMixin(object):
     def get_context_data(self, *args, **kwargs):
         context = super(SwaggerApiDataMixin, self).get_context_data(*args, **kwargs)
         context.update({
-            'apiVersion': context['params'].get('version', 'Unknown'),
+            'apiVersion': self.kwargs.get('version', 'Unknown'),
             'swaggerVersion': '1.1',
         })
         return context
