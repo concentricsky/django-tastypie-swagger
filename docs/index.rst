@@ -6,7 +6,6 @@
 Welcome to Django Tastypie Swagger's documentation!
 ===================================================
 
-
 Synopsis
 ========
 
@@ -57,8 +56,8 @@ eg::
 - The ``namespace`` is repeated on purpose to go around some limitations and should be unique amongst the other
 urls you have defined.
 
-- The ``tastypie_api_module`` is either your tastypie api instance or a string containing the full path to your
-tastypie api instance.
+- The ``tastypie_api_module`` is either your Tastypie api instance or a string containing the full path to your
+Tastypie api instance.
 
 To declare more than one endpoint, repeat the above URL definition and change the namespace.
 
@@ -85,7 +84,7 @@ called ``extra_actions``. Following the Tastypie search example, here is how
                 "name": "search",
                 "http_method": "GET",
                 "resource_type": "list",
-                "description": "Seach endpoint",
+                "description": "Search endpoint",
                 "fields": {
                     "q": {
                         "type": "string",
@@ -101,7 +100,7 @@ that are unavailable to introspection.
 
 .. important::
    ``extra_actions`` feeds directly into the schema **for swagger**. It does
-   not alter the tastypie schema listing tastypie provides.
+   not alter the Tastypie schema listing Tastypie provides.
 
 Top level keys and meaning in the ``extra_actions`` dictionary:
 
@@ -111,14 +110,14 @@ Top level keys and meaning in the ``extra_actions`` dictionary:
 - ``resource_type``: If this is declared as ``"list"`` then the endpoint
   **will not** include a ``{id}`` parameter in the uri or in the parameters
   list. This is applicable to endpoints such as the above example that filter
-  or perform actions across many items. If ``resource_type`` is ommitted and
+  or perform actions across many items. If ``resource_type`` is omitted and
   the ``http_method`` is ``"GET"`` then the endpoint will default to ``"view"``
   and include a ``{id}`` parameter in the uri and parameter list.
 - ``summary``: Description of this endpoint.
 - ``fields``: **Optional** Dictionary of parameters this endpoint accepts.
 
 Field dictionaries are declared in a ``{ "name": { [options dict] }`` style.
-This is done for compatability reasons with older versions of
+This is done for compatibility reasons with older versions of
 django-tastypie-swagger.
 
 .. warning::
@@ -139,6 +138,20 @@ Detecting required fields
 Tastypie 0.9.11 **ModelResource** fields do not respect the *blank* attribute on django model fields, which this library depends on to determine if a field is required or not.
 
 You can use `this ModelResource subclass <https://gist.github.com/4041352>`_ as a workaround to this issue.
+
+
+Using plural names for resources
+--------------------------------
+
+It is possible to define a *plural* name for a resource, using this attribute in the class' ``Meta``:
+
+    class ShoeResource(Resource):
+        size = ...
+        brand = ...
+
+        class Meta:
+            resource_name = 'shoe'
+            resource_name_plural = 'shoes'
 
 
 License
