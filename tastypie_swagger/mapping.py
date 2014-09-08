@@ -188,7 +188,16 @@ class ResourceSwaggerMapping(object):
                 if not prefix.find('{0}__'.format(name)) >= 0:
                     # Integer value means this points to a related model
                     if field in [ALL, ALL_WITH_RELATIONS]:
+                        # For fields marked as ALL_WITH_RELATIONS, we must fetch information on their related resources as well.
+                        # However, tastypie allows us to mark fields that do not have related resources as ALL_WITH_RELATIONS.
+                        # This functions like a white list.
+                        # Therefore, we need to check whether a field actually has a related resource.
                         if field == ALL:
+                            has_related_resource = False
+                        else:
+                            has_related_resource = hasattr(self.resource.fields[name], 'get_related_resource')
+
+                        if not has_related_resource:
                             #This code has been mostly sucked from the tastypie lib
                             if getattr(self.resource._meta, 'queryset', None) is not None:
                                 # Get the possible query terms from the current QuerySet.
@@ -206,7 +215,7 @@ class ResourceSwaggerMapping(object):
                                     # Django 1.5+.
                                     field = QUERY_TERMS
 
-                        elif field == ALL_WITH_RELATIONS: # Show all params from related model
+                        else: # Show all params from related model
                             # Add a subset of filter only foreign-key compatible on the relation itself.
                             # We assume foreign keys are only int based.
                             field = ['gt', 'in', 'gte', 'lt', 'lte', 'exact'] # TODO This could be extended by checking the actual type of the relational field, but afaik it's also an issue on tastypie.
