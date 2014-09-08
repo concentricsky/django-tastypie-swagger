@@ -188,12 +188,16 @@ class ResourceSwaggerMapping(object):
                 if not prefix.find('{0}__'.format(name)) >= 0:
                     # Integer value means this points to a related model
                     if field in [ALL, ALL_WITH_RELATIONS]:
+                        # For fields marked as ALL_WITH_RELATIONS, we must fetch information on their related resources as well.
+                        # However, tastypie allows us to mark fields that do not have related resources as ALL_WITH_RELATIONS.
+                        # This functions like a white list.
+                        # Therefore, we need to check whether a field actually has a related resource.
                         if field == ALL:
-                            field_is_fk = False
+                            has_related_resource = False
                         else:
-                            field_is_fk = hasattr(self.resource.fields[name], 'get_related_resource')
+                            has_related_resource = hasattr(self.resource.fields[name], 'get_related_resource')
 
-                        if not field_is_fk:
+                        if not has_related_resource:
                             #This code has been mostly sucked from the tastypie lib
                             if getattr(self.resource._meta, 'queryset', None) is not None:
                                 # Get the possible query terms from the current QuerySet.
