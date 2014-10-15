@@ -132,6 +132,108 @@ Available keys and meaning for the ``fields`` dictionary:
   parameter.
 
 
+Using ``extra_models``
+----------------------
+
+Sometimes is useful to pass some extra JSON information to a request.
+Since this is mapping new information, we can call it a "model".
+
+For example, let's imagine an API having a main service with multiple sub-services
+(we will try to keep this example as minimal as possible):
+
+    class MainService(Resource):
+        service = ...
+
+    class SubService(Resource):
+        sub_service = fields.ForeignKey(MainService)
+        ...
+
+        class Meta:
+            resource_name = 'subservice'
+
+We now want the user to provide an optional "reason" for a certain API
+action (e.g. a sub-service deactivation). This is done by defining an
+``extra_models`` dictionary in the ``Meta`` class inside your
+*ModelResource* class.
+
+Each extra model must have an ``id`` and  ``properties``. The latter is a
+nested dictionary, and the value in this dictionary must contain
+a ``type`` and ``description`` for that key.
+
+::
+
+    class MainService(Resource):
+        service = ...
+
+        class Meta:
+            ...
+
+            extra_models = {
+                "deactivation": {
+                    "id" : "deactivation",
+                    "properties": {
+                        "reason": {"type": "string", "description": "Optional reason for deactivation"},
+                    }
+                },
+            }
+
+This map for a new chunk of information is set as a ``field`` in the relative ``extra_actions``
+entry:
+
+ ::
+
+    from tastypie_swagger.utils import trailing_slash_or_none
+
+
+    class MainService(Resource):
+        service = ...
+
+        class Meta:
+            ...
+
+            extra_actions = [
+                {
+                    "name": "deactivation",
+                    "http_method": "PUT",
+                    "resource_type": "list",
+                    "summary": "Endpoint for deactivating a service subscription",
+                    "path": "{id}/deactivate/{sub_service_id}%s" % trailing_slash_or_none(),
+                    "fields": {
+                        "id": {
+                            "param_type": 'path',
+                            "name": "id",
+                            "type": 'int',
+                            "description": 'ID of subscription resource'
+                        },
+                        "sub_service_id": {
+                            "param_type": 'path',
+                            "name": "sub_service_id",
+                            "type": 'int',
+                            "description": 'ID of sub service resource'
+                        },
+                        "deactivation": {
+                            "param_type": 'body',
+                            "name": "deactivation",
+                            "type": "deactivation",
+                            "description": "Extra information on the deactivation"
+                        }
+                    },
+                    "response_class": "subservice",
+                }
+            ]
+
+While the first two fields will be part of the URL, the latter will be embedded
+in the request's body. This example introduces few modifications to the
+``extra_actions`` previously defined:
+
+- ``path``: indicates which of the ``fields`` will be embedded in the API path (e.g. ``id``
+  for the main service and ``sub_service_id`` for the sub-service);
+- ``param_type``: distinguishes the ``path`` parameters (in the API path)
+  from the ``body`` parameters (passed as JSON in the request's body);
+- ``response_class``: the ``resource_name`` of the object that will be used to
+  answer to this request (in this example, the sub-service's deactivation reason
+  just introduced will obviously be bound to the sub-service's class).
+
 Detecting required fields
 -------------------------
 

@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 IGNORED_FIELDS = ['id', ]
 
 
+
 # Enable all basic ORM filters but do not allow filtering across relationships.
 ALL = 1
 # Enable all ORM filters, including across relationships
@@ -109,7 +110,7 @@ class ResourceSwaggerMapping(object):
         else:
             raise AttributeError('Resource %(resource)s has neither get_resource_list_uri nor get_resource_uri' % {'resource': self.resource})
 
-    def build_parameter(self, paramType='body', name='', dataType='', required=True, description='', allowed_values = None):
+    def build_parameter(self, paramType='body', name='', dataType='', required=True, description='', allowed_values=None):
         parameter = {
             'paramType': paramType,
             'name': name,
@@ -118,8 +119,6 @@ class ResourceSwaggerMapping(object):
             'description': description,
         }
 
-        # TODO make use of this to Implement the allowable_values of swagger
-        # (https://github.com/wordnik/swagger-core/wiki/Datatypes) at the field level.
         # This could be added to the meta value of the resource to specify enum-like or range data on a field.
 #        if allowed_values:
 #            parameter.update({'allowableValues': allowed_values})
@@ -148,7 +147,7 @@ class ResourceSwaggerMapping(object):
 
     def build_parameters_from_ordering(self):
         values = []
-        [values.extend([field,"-%s"%field]) for field in self.schema['ordering']]
+        [values.extend([field, "-%s" % field]) for field in self.schema['ordering']]
         return {
             'paramType': "query",
             'name': "order_by",
@@ -158,7 +157,7 @@ class ResourceSwaggerMapping(object):
                                    "Ascending order by default, prepending the '-' "
                                    "sign change the sorting order to descending"),
             'allowableValues': {
-                'valueType' : "LIST",
+                'valueType': "LIST",
                 'values': values
 
             }
@@ -168,7 +167,7 @@ class ResourceSwaggerMapping(object):
         parameters = []
 
         # Deal with the navigational filters.
-        # Always add the limits & offset params on the root ( aka not prefixed ) object.
+        # Always add the limits & offset params on the root (aka not prefixed) object.
         if not prefix and method.upper() == 'GET':
             navigation_filters = [
                 ('limit', 'int', 'Specify the number of element to display per page.'),
@@ -218,7 +217,7 @@ class ResourceSwaggerMapping(object):
                         else: # Show all params from related model
                             # Add a subset of filter only foreign-key compatible on the relation itself.
                             # We assume foreign keys are only int based.
-                            field = ['gt', 'in', 'gte', 'lt', 'lte', 'exact'] # TODO This could be extended by checking the actual type of the relational field, but afaik it's also an issue on tastypie.
+                            field = ['gt', 'in', 'gte', 'lt', 'lte', 'exact']  # TODO This could be extended by checking the actual type of the relational field, but afaik it's also an issue on tastypie.
                             related_resource = self.resource.fields[name].get_related_resource(None)
                             related_mapping = ResourceSwaggerMapping(related_resource)
 
@@ -226,7 +225,8 @@ class ResourceSwaggerMapping(object):
 
                     if isinstance(field, (list, tuple, set)):
                         # Skip if this is an incorrect filter
-                        if name not in self.schema['fields']: continue
+                        if name not in self.schema['fields']:
+                            continue
 
                         schema_field = self.schema['fields'][name]
 
@@ -262,7 +262,7 @@ class ResourceSwaggerMapping(object):
         return self.build_parameter(
             name=self.resource_name,
             dataType="%s_%s" % (self.resource_name, method) if not method == "get" else self.resource_name,
-            required = True
+            required=True
         )
 
     def _detail_uri_name(self):
@@ -273,8 +273,9 @@ class ResourceSwaggerMapping(object):
 
     def build_parameters_from_extra_action(self, method, fields, resource_type):
         parameters = []
-        if resource_type == "view":
-            parameters.append(self.build_parameter(paramType='path',
+        if method.upper() == 'GET' and resource_type == "view":
+            parameters.append(self.build_parameter(
+                paramType='path',
                               name=self._detail_uri_name(),
                               dataType=self.resource_pk_type,
                               description='Primary key of resource'))
@@ -291,16 +292,15 @@ class ResourceSwaggerMapping(object):
         # define their own filters, along with Swagger endpoint values.
         # Minimal error checking here. If the User understands enough to want to
         # do this, assume that they know what they're doing.
-        if hasattr(self.resource.Meta, 'custom_filtering'):
-            for name, field in self.resource.Meta.custom_filtering.items():
-                parameters.append(self.build_parameter(
-                                  paramType='query',
-                                  name=name,
-                                  dataType=field['dataType'],
-                                  required=field['required'],
-                                  description=unicode(field['description'])
-                                  ))
-
+        # if hasattr(self.resource.Meta, 'custom_filtering'):
+        #     for name, field in self.resource.Meta.custom_filtering.items():
+        #         parameters.append(self.build_parameter(
+        #             paramType = 'query',
+        #             name = name,
+        #             dataType = field['dataType'],
+        #             required = field['required'],
+        #             description = unicode(field['description'])
+        #         ))
 
         return parameters
 
@@ -340,11 +340,9 @@ class ResourceSwaggerMapping(object):
             'httpMethod': extra_action.get('http_method', "get").upper(),
             'parameters': self.build_parameters_from_extra_action(
                 method=extra_action.get('http_method'),
-                # Default fields to an empty dictionary in the case that it
-                # is not set.
-                fields=extra_action.get('fields', {}),
+                fields=extra_action.get('fields'),
                 resource_type=extra_action.get("resource_type", "view")),
-            'responseClass': 'Object', #TODO this should be extended to allow the creation of a custom object.
+            'responseClass': extra_action.get('response_class', 'Object'),
             'nickname': extra_action['name'],
             'notes': extra_action.get('notes', ''),
         }
@@ -385,18 +383,24 @@ class ResourceSwaggerMapping(object):
         return list_api
 
     def build_extra_apis(self):
+        """ Build extra entries for additional sub-resources """
+        from tastypie_swagger.utils import trailing_slash_or_none, urljoin_forced
         extra_apis = []
         if hasattr(self.resource._meta, 'extra_actions'):
             identifier = self._detail_uri_name()
             for extra_action in self.resource._meta.extra_actions:
                 extra_api = {
-                    'path': "%s{%s}/%s/" % (self.get_resource_base_uri(), identifier , extra_action.get('name')),
+                    'path': urljoin_forced(self.get_resource_base_uri(), "{%s}/%s%s" % (
+                        identifier, extra_action.get('name'), trailing_slash_or_none())),
                     'operations': []
                 }
-
                 if extra_action.get("resource_type", "view") == "list":
-                    extra_api['path'] = "%s%s/" % (self.get_resource_base_uri(), extra_action.get('name'))
-
+                    base_uri = self.get_resource_base_uri()
+                    if base_uri.endswith('/'):
+                        base_uri = base_uri[:-1]
+                    extra_api['path'] = "%s/%s/" % (base_uri, extra_action.get('name'))
+                if extra_action.has_key("path"):
+                    extra_api['path'] = urljoin_forced(self.get_resource_base_uri(), extra_action["path"])
                 operation = self.build_extra_operation(extra_action)
                 extra_api['operations'].append(operation)
                 extra_apis.append(extra_api)
@@ -427,7 +431,7 @@ class ResourceSwaggerMapping(object):
             if name in excludes:
                 continue
             # Exclude fields from custom put / post object definition
-            if method in ['post','put']:
+            if method in ['post', 'put']:
                 if name in self.WRITE_ACTION_IGNORED_FIELDS:
                     continue
                 if field.get('readonly'):
@@ -439,13 +443,12 @@ class ResourceSwaggerMapping(object):
                 field['default'] = field.get('default').isoformat()
 
             properties.update(self.build_property(
-                    name,
-                    field.get('type'),
-                    # note: 'help_text' is a Django proxy which must be wrapped
-                    # in unicode *specifically* to get the actual help text.
-                    force_unicode(field.get('help_text', '')),
-                )
-            )
+                name,
+                field.get('type'),
+                # note: 'help_text' is a Django proxy which must be wrapped
+                # in unicode *specifically* to get the actual help text.
+                force_unicode(field.get('help_text', '')),
+            ))
         return properties
 
     def build_model(self, resource_name, id, properties):
@@ -455,7 +458,6 @@ class ResourceSwaggerMapping(object):
                 'id': id
             }
         }
-
 
     def build_list_models_and_properties(self):
         models = {}
@@ -522,7 +524,6 @@ class ResourceSwaggerMapping(object):
         return models
 
     def build_models(self):
-        #TODO this should be extended to allow the creation of a custom objects for extra_actions.
         models = {}
 
         # Take care of the list particular schema with meta and so on.
@@ -546,6 +547,16 @@ class ResourceSwaggerMapping(object):
                     id='%s_put' % self.resource_name
                 )
             )
+
+        if hasattr(self.resource._meta, "extra_models"):
+            for item in self.resource._meta.extra_models.keys():
+                models.update(
+                    self.build_model(
+                        resource_name=item,
+                        properties=self.resource._meta.extra_models[item]["properties"],
+                        id=self.resource._meta.extra_models[item]["id"]
+                    )
+                )
 
         # Actually add the related model
         models.update(
