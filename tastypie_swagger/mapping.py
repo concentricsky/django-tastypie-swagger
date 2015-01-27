@@ -2,7 +2,7 @@ import datetime
 import logging
 
 from django.db.models.sql.constants import QUERY_TERMS
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text as force_unicode
 
 from tastypie import fields
 
