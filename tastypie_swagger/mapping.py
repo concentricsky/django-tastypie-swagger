@@ -349,7 +349,7 @@ class ResourceSwaggerMapping(object):
                 # is not set.
                 fields=extra_action.get('fields', {}),
                 resource_type=extra_action.get("resource_type", "view")),
-            'responseClass': 'Object', #TODO this should be extended to allow the creation of a custom object.
+            'responseClass': extra_action.get("responseClass", "Object"),
             'nickname': extra_action['name'],
             'notes': extra_action.get('notes', ''),
         }
@@ -527,7 +527,6 @@ class ResourceSwaggerMapping(object):
         return models
 
     def build_models(self):
-        #TODO this should be extended to allow the creation of a custom objects for extra_actions.
         models = {}
 
         # Take care of the list particular schema with meta and so on.
@@ -560,4 +559,16 @@ class ResourceSwaggerMapping(object):
                 id=self.resource_name
             )
         )
+
+        if hasattr(self.resource._meta, 'extra_actions'):
+            for extra_action in self.resource._meta.extra_actions:
+                if "model" in extra_action:
+                    models.update(
+                        self.build_model(
+                        resource_name=extra_action['model']['id'],
+                        properties=extra_action['model']['properties'],
+                        id=extra_action['model']['id']
+                        )
+                    )
+
         return models
