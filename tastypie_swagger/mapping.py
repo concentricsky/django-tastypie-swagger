@@ -123,6 +123,7 @@ class ResourceSwaggerMapping(object):
             'description': description,
         }
 
+
         # TODO make use of this to Implement the allowable_values of swagger
         # (https://github.com/wordnik/swagger-core/wiki/Datatypes) at the field level.
         # This could be added to the meta value of the resource to specify enum-like or range data on a field.
@@ -138,7 +139,7 @@ class ResourceSwaggerMapping(object):
                 parameters.append(self.build_parameter(
                     name=name,
                     dataType=field['type'],
-                    required=not field['blank'],
+                    required=field['nullable'],
                     description=force_text(field['help_text']),
                 ))
         return parameters
@@ -412,14 +413,14 @@ class ResourceSwaggerMapping(object):
         apis.extend(self.build_extra_apis())
         return apis
 
-    def build_property(self, name, type, description=""):
+    def build_property(self, name, type, description="", required=False):
         prop = {
             name: {
                 'type': type,
                 'description': description,
+                'required':required
             }
         }
-
         if type == 'List':
             prop[name]['items'] = {'$ref': name}
 
@@ -449,6 +450,7 @@ class ResourceSwaggerMapping(object):
                     # note: 'help_text' is a Django proxy which must be wrapped
                     # in unicode *specifically* to get the actual help text.
                     force_text(field.get('help_text', '')),
+                    field.get('nullable')
                 )
             )
         return properties
