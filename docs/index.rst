@@ -115,6 +115,26 @@ Top level keys and meaning in the ``extra_actions`` dictionary:
   and include a ``{id}`` parameter in the uri and parameter list.
 - ``summary``: Description of this endpoint.
 - ``fields``: **Optional** Dictionary of parameters this endpoint accepts.
+- ``responseClass``: **Optional** Should match the id of the corresponding model
+- ``model``: **Optional** Dictionary of parameters describing the model. ``type`` and ``description`` are the two required elements.  ``required`` is optional and is False by default.
+Example ::
+
+	'responseClass': 'blog-class',
+	'model':{
+		'id': "blog-class",
+		"properties": {
+			"title": {
+				"type": "string",
+				"description": "This is the title. Max 80 caracters."
+				"required":True
+			},
+			"content": {
+				"type": "text",
+				"description": "Content of your post. Text up to 65000+"
+				"required":True
+			}
+		}
+	}
 
 Field dictionaries are declared in a ``{ "name": { [options dict] }`` style.
 This is done for compatibility reasons with older versions of
