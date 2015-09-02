@@ -151,7 +151,20 @@ Available keys and meaning for the ``fields`` dictionary:
 - ``description``: Defaults to ``""`` (empty string). Description of this
   parameter.
 
+ 
 
+Give a description to your resource
+-------------------------
+
+To allow users to know what your resource is about, you can add the field *resource_description* in the class ``Meta`` as follow:
+
+Example ::
+ 
+ class Meta:
+        resource_name = 'pet'
+        resource_description = 'Everything about your Pets''
+
+		
 Detecting required fields
 -------------------------
 
@@ -163,7 +176,7 @@ You can use `this ModelResource subclass <https://gist.github.com/4041352>`_ as 
 Using plural names for resources
 --------------------------------
 
-It is possible to define a *plural* name for a resource, using this attribute in the class' ``Meta``:
+It is possible to define a *plural* name for a resource, using this attribute in the class ``Meta``:
 
     class ShoeResource(Resource):
         size = ...
@@ -171,7 +184,7 @@ It is possible to define a *plural* name for a resource, using this attribute in
 
         class Meta:
             resource_name = 'shoe'
-            resource_name_plural = 'shoes'
+			resource_name_plural = 'shoes'
 
 
 License
