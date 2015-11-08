@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 import tastypie
 
 from .mapping import ResourceSwaggerMapping
+from importlib import import_module
 
 
 class TastypieApiMixin(object):
@@ -33,7 +34,7 @@ class TastypieApiMixin(object):
             else:
                 path, attr = tastypie_api_module.rsplit('.', 1)
                 try:
-                    tastypie_api = getattr(sys.modules[path], attr, None)
+                    tastypie_api = getattr(import_module(path), attr, None)
                 except KeyError:
                     raise ImproperlyConfigured("%s is not a valid python path" % path)
                 if not tastypie_api:
