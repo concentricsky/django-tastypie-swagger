@@ -180,11 +180,11 @@ class ResourceSwaggerMapping(object):
                 ('limit', 'int', 'Specify the number of element to display per page.'),
                 ('offset', 'int', 'Specify the offset to start displaying element on a page.'),
             ]
-            for name, type, desc in navigation_filters:
+            for name, data_type, desc in navigation_filters:
                 parameters.append(self.build_parameter(
                     paramType="query",
                     name=name,
-                    dataType=type,
+                    dataType=data_type,
                     required=False,
                     description=force_text(desc),
                 ))
@@ -262,6 +262,17 @@ class ResourceSwaggerMapping(object):
                                     description=force_text(schema_field['help_text']),
                                 ))
 
+        # custom filtering
+        custom_filtering = getattr(self.resource.Meta, 'custom_filtering', None)
+        if type(custom_filtering) == dict:
+            for key, value in custom_filtering.iteritems():
+                parameters.append(self.build_parameter(
+                    paramType="query",
+                    name=key,
+                    dataType=value['dataType'],
+                    required=value['required'],
+                    description=value['description'],
+                ))
         return parameters
 
     def build_parameter_for_object(self, method='get'):
