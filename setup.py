@@ -29,4 +29,7 @@ setup(
     packages=['tastypie_swagger'],
     include_package_data=True,
     zip_safe=False,
+    install_requires=[
+        'django-tastypie >= 0.12.2',
+    ],
 )
