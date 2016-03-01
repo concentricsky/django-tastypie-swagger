@@ -163,7 +163,7 @@ You can use `this ModelResource subclass <https://gist.github.com/4041352>`_ as 
 Using plural names for resources
 --------------------------------
 
-It is possible to define a *plural* name for a resource, using this attribute in the class' ``Meta``:
+It is possible to define a *plural* name for a resource, using this attribute in the class' ``Meta``::
 
     class ShoeResource(Resource):
         size = ...
