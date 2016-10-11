@@ -12,9 +12,13 @@ ALL = 1
 ALL_WITH_RELATIONS = 2
 
 SWAGGER_V2_TYPE_MAP = {
-    'List': 'array',
-    'int': 'integer',
-    'bool': 'boolean',
+    'List': ('array', None),
+    'int': ('integer', 'int32'),
+    'bool': ('boolean', None),
+    'related': ('string', None),
+    'datetime': ('string', 'date-time'),
+    'decimal': ('number', 'double'),
+    'dict': ('object', None),
 }
 
 
@@ -41,17 +45,27 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         # build the swagger v2 specs
         paths = {}
         defs = {}
+        api_tags = []
+        api_tagnames = []
         models = self.build_models()
         common_path = apis[0].get('path').replace(self.resource_name, '')
         common_path = common_path.replace('//', '/')
         for api in apis:
             uri = api.get('path').replace(common_path, '/')
+            tag_name = uri.replace('/', '').split('{')[0]
+            tag = {
+                "name": tag_name,
+            }
+            if tag_name not in api_tagnames:
+                api_tagnames.append(tag_name)
+                api_tags.append(tag)
             path = paths[uri] = {}
             for op in api.get('operations'):
                 responseCls = op.get('responseClass')
                 method = op.get('httpMethod').lower()
                 path[method] = {
                     "summary": op.get('summary'),
+                    "tags": [tag_name],
                     "responses": {
                         "200": {
                             "description": "%s object" % responseCls,
@@ -68,7 +82,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
             model.pop('id')
             self.map_properties(model, models)
             defs[self.get_model_ref_name(name)] = model
-        return common_path, paths, defs
+        return common_path, paths, defs, api_tags
 
     def map_parameters(self, method, path, in_params, models):
         """
@@ -96,7 +110,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                     "$ref": self.get_model_ref(kind),
                 }
             else:
-                param['type'] = SWAGGER_V2_TYPE_MAP.get(kind, kind)
+                param.update(self.get_swagger_type(kind))
             params.append(param)
         return params
 
@@ -115,7 +129,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                     prop['type'] = 'object'
                     prop['$ref'] = self.get_model_ref(kind)
                 elif kind:
-                    prop['type'] = SWAGGER_V2_TYPE_MAP.get(kind, kind)
+                    prop.update(self.get_swagger_type(kind))
                 ref = prop.get('$ref')
                 if ref is not None and not ref.startswith('#'):
                     prop['$ref'] = self.get_model_ref(ref)
@@ -140,3 +154,14 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         return the $ref path for the given model name
         """
         return "#/definitions/%s" % self.get_model_ref_name(name)
+
+    def get_swagger_type(self, kind):
+        """ return dict of type and format as applicable """
+        try:
+            kind, format = SWAGGER_V2_TYPE_MAP[kind]
+        except KeyError:
+            format = None
+        d = dict(type=kind)
+        if format:
+            d.update(format=format)
+        return d

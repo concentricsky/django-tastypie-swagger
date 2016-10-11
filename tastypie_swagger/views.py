@@ -135,7 +135,7 @@ class Schema2View(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
 
     This JSON must conform to http://swagger.io/specification/ 
     at Version 2.0
-    
+
     For testing see example/demo.tests, which validates a default ModelResource
     to conform to this specification 
     """
@@ -211,11 +211,12 @@ class SwaggerSpecs2View(TastypieApiMixin, JSONView):
         # Generate mapping from tastypie.resources.Resource.build_schema
         resource = self.tastypie_api._registry.get(resource_name)
         mapping = ResourceSwagger2Mapping(resource)
-        basePath, apis, defs = mapping.build_apis()
+        basePath, apis, defs, tags = mapping.build_apis()
         if context.get('basePath') is None:
             context['basePath'] = basePath
         context['paths'].update(apis)
         context['definitions'].update(defs)
+        context['tags'].extend(tags)
         return context
 
     def get_context_data(self, *args, **kwargs):
@@ -245,6 +246,7 @@ class SwaggerSpecs2View(TastypieApiMixin, JSONView):
             "produces": [
                 "application/json"
             ],
+            "tags": [],
             "paths": {
             },
             "definitions": {
