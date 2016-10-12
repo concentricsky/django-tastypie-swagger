@@ -1,15 +1,5 @@
-import logging
-from os.path import commonprefix
 from tastypie_swagger.mapping import ResourceSwaggerMapping
-logger = logging.getLogger(__name__)
-# Ignored POST fields
-IGNORED_FIELDS = ['id', ]
 
-
-# Enable all basic ORM filters but do not allow filtering across relationships.
-ALL = 1
-# Enable all ORM filters, including across relationships
-ALL_WITH_RELATIONS = 2
 
 SWAGGER_V2_TYPE_MAP = {
     'List': ('array', None),
@@ -29,14 +19,52 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
 
     This uses the original ResourceSwaggerMapping for swagger V1 specs
     and maps its output to Swagger V2. This ensures we can produce both
-    valid V1 and V2 specs.
+    valid V1 and V2 specs from the same tastypie.Resources.
 
     Usage:
         resource = tastypie.Resource instance
         mapping = ResourceSwagger2Mapping(resource)
-        apis, defs = mapping.build_apis()
+        common_path, paths, defs, tags = mapping.build_apis()
         specs['paths'].update(apis)
         specs['definitions'].update(defs)
+
+    Parameters:
+
+        resource - the tastypie.Resource instance
+
+    Returns:
+        tuple of (common_path, paths, defs, tags)
+
+        common_path - the common parts of the API's URIs, use as "basePath"
+        paths - the "path" dict of the specs
+        defs - the "definitions" dict of the specs
+        tags - the "tags" dict of the specs
+
+    Notes:
+        * Any tastypie common dataTypes referenced in the V1 specs are mapped 
+          as "$ref" and the data type is added to the defs dict. To ensure
+          uniqueness among multiple resources, the ListView, Object and Meta
+          datatypes are prefixed with the resource name
+
+        * any parameter's "in" attribute for GET methods are set to "query",
+          all other methods GET/DELETE/PUT/PATCH get "body". 
+
+        * if the parameter name appears as "{<name>}" in the operation's
+          path (e.g. parameter "id" in "/category/{id}"), the "in" attribute
+          is set to "path" (see map_parameters)
+
+        * types are converted from swagger V1 according to SWAGGER_V2_TYPE_MAP
+          (see .get_swagger_type)
+
+        * multi-level model properties are supported, however multi-level
+          parameters are not unless they are data types.
+
+    Developers:
+
+        IF YOU UPDATE THIS, BE SURE TO RUN validation tests in 
+
+        $ cd example
+        $ manage.py test demo
     """
 
     def build_apis(self):
@@ -50,6 +78,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         models = self.build_models()
         common_path = apis[0].get('path').replace(self.resource_name, '')
         common_path = common_path.replace('//', '/')
+        # build tags, paths and operations
         for api in apis:
             uri = api.get('path').replace(common_path, '/')
             tag_name = uri.replace('/', '').split('{')[0]
@@ -65,6 +94,9 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                 method = op.get('httpMethod').lower()
                 path[method] = {
                     "summary": op.get('summary'),
+                    # -- note "tags" is optional, yet sphinx-swagger
+                    # requires it
+                    # (https://github.com/unaguil/sphinx-swagger/issues/5)
                     "tags": [tag_name],
                     "responses": {
                         "200": {
@@ -75,9 +107,14 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                         }
                     }
                 }
+                # add optional attributes
+                if self.resource.__doc__ is not None:
+                    path[method].update(description=self.resource.__doc__)
+                # add parameters
                 op_params = self.map_parameters(
                     method, uri, op.get('parameters'), models)
                 path[method]['parameters'] = op_params
+        # build definitions
         for name, model in models.iteritems():
             model.pop('id')
             self.map_properties(model, models)
