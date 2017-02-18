@@ -15,7 +15,7 @@ urlpatterns = [
 from django import get_version
 from distutils.version import StrictVersion
 
-if StrictVersion(get_version()) < StrictVersion("1.10"):
+if StrictVersion(get_version()) < StrictVersion("1.8"):
     try:
         from django.conf.urls import patterns
     except ImportError:
