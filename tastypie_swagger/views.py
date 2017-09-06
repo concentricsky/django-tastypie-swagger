@@ -124,7 +124,7 @@ class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
 
     def get_context_data(self, *args, **kwargs):
         # Verify matching tastypie resource exists
-        resource_name = kwargs.get('resource', None)
+        resource_name = kwargs.get('resource', None).strip('/')
         if not resource_name in self.tastypie_api._registry:
             raise Http404
 
