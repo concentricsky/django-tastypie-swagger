@@ -118,7 +118,10 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         for name, model in models.iteritems():
             model.pop('id')
             self.map_properties(model, models)
+            # add actual definition object
             defs[self.get_model_ref_name(name)] = model
+            # need a 'type' on every level according to JsonSchema specs
+            defs[self.get_model_ref_name(name)]['type'] = 'object'
         return common_path, paths, defs, api_tags
 
     def map_parameters(self, method, path, in_params, models):
@@ -172,6 +175,12 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                     prop['$ref'] = self.get_model_ref(ref)
                 for key, subprop in prop.iteritems():
                     recurse(subprop)
+            # if a type is referenced remove 'type' and 'descriptions'
+            # to avoid warning 'other properties are defined at level ...'
+            # see https://github.com/go-swagger/go-swagger/issues/901
+            if '$ref' in prop and 'type' in prop:
+                del prop['type']
+                del prop['description']
         recurse(props)
 
     def get_model_ref_name(self, name):
@@ -181,7 +190,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         This is required because the Swagger V1 specs were on a per-resource
         level, whereas the Swagger V2 specs are for multiple resources. 
         """
-        if name in ['ListView', 'Objects', 'Meta']:
+        if name in ['ListView', 'Objects', 'Meta', 'Object']:
             name = '%s_%s' % (self.resource_name.replace('/', '_'),
                               name)
         return name
@@ -202,3 +211,24 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         if format:
             d.update(format=format)
         return d
+
+    def build_models(self):
+        models = super(ResourceSwagger2Mapping, self).build_models()
+        # add extra actions models
+        # TODO support other models than 'Object', i.e. using response_class
+        #      for this use different properties than those returned by
+        #      by build_properties_from_field
+        if hasattr(self.resource._meta, 'extra_actions'):
+            for action in self.resource._meta.extra_actions:
+                http_method = action.get('http_method')
+                resource_name = '%s_%s' % (self.resource._meta.resource_name,
+                                           'Object')
+                model_id = '%s_%s' % (self.resource_name, http_method)
+                model = self.build_model(
+                    resource_name=resource_name,
+                    properties=self.build_properties_from_fields(
+                        method=http_method),
+                    id=model_id,
+                )
+                models.update(model)
+        return models
