@@ -1,6 +1,6 @@
 from tastypie_swagger.mapping import ResourceSwaggerMapping
 
-
+from six import iteritems
 SWAGGER_V2_TYPE_MAP = {
     'List': ('array', None),
     'int': ('integer', 'int32'),
@@ -115,7 +115,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                     method, uri, op.get('parameters'), models)
                 path[method]['parameters'] = op_params
         # build definitions
-        for name, model in models.iteritems():
+        for name, model in iteritems(models):
             model.pop('id')
             self.map_properties(model, models)
             # add actual definition object
@@ -173,7 +173,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                 ref = prop.get('$ref')
                 if ref is not None and not ref.startswith('#'):
                     prop['$ref'] = self.get_model_ref(ref)
-                for key, subprop in prop.iteritems():
+                for key, subprop in iteritems(prop):
                     recurse(subprop)
             # if a type is referenced remove 'type' and 'descriptions'
             # to avoid warning 'other properties are defined at level ...'
