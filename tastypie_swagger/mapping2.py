@@ -109,7 +109,8 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                 }
                 # add optional attributes
                 if self.resource.__doc__ is not None:
-                    path[method].update(description=self.resource.__doc__)
+                    description = self.resource.__doc__
+                    path[method].update(description=description)
                 # add parameters
                 op_params = self.map_parameters(
                     method, uri, op.get('parameters'), models)
