@@ -11,7 +11,7 @@ except ImportError:
     except ImportError:
 
         def patterns(name, *args):
-            return args
+            return list(args)
 
 
 from .views import SwaggerView, ResourcesView, SchemaView
