@@ -203,17 +203,7 @@ class ResourceSwaggerMapping(object):
                             has_related_resource = hasattr(self.resource.fields[name], 'get_related_resource')
 
                         if not has_related_resource:
-                            #This code has been mostly sucked from the tastypie lib
-                            if getattr(self.resource._meta, 'queryset', None) is not None:
-                                # Get the possible query terms from the current QuerySet.
-                                if hasattr(self.resource._meta.queryset.query.query_terms, 'keys'):
-                                    # Django 1.4 & below compatibility.
-                                    field = self.resource._meta.queryset.query.query_terms.keys()
-                                else:
-                                    # Django 1.5+.
-                                    field = self.resource._meta.queryset.query.query_terms
-                            else:
-                                field = self.resource.fields[name].get_lookups().keys()
+                            field = self.resource.fields[name].get_lookups().keys()
 
                         else: # Show all params from related model
                             # Add a subset of filter only foreign-key compatible on the relation itself.
