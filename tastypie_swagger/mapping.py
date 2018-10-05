@@ -1,7 +1,6 @@
 import datetime
 import logging
 
-from django.db.models.sql.constants import QUERY_TERMS
 
 try:
     from django.utils.encoding import force_text
@@ -214,12 +213,7 @@ class ResourceSwaggerMapping(object):
                                     # Django 1.5+.
                                     field = self.resource._meta.queryset.query.query_terms
                             else:
-                                if hasattr(QUERY_TERMS, 'keys'):
-                                    # Django 1.4 & below compatibility.
-                                    field = QUERY_TERMS.keys()
-                                else:
-                                    # Django 1.5+.
-                                    field = QUERY_TERMS
+                                field = self.resource.fields[name].get_lookups().keys()
 
                         else: # Show all params from related model
                             # Add a subset of filter only foreign-key compatible on the relation itself.
