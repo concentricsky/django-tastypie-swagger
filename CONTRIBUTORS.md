@@ -5,3 +5,4 @@
 [David Wolever](david@wolever.net)
 [Joshua Kehn](https://github.com/joshkehn)
 [David Miller](david@deadpansincerity.com)
+[Patrick Senti](https://github.com/miraculixx)
