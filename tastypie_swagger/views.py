@@ -4,7 +4,7 @@ import json
 from django.views.generic import TemplateView
 from django.http import HttpResponse, Http404
 from django.core.exceptions import ImproperlyConfigured
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 import tastypie
 
@@ -125,6 +125,8 @@ class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
     def get_context_data(self, *args, **kwargs):
         # Verify matching tastypie resource exists
         resource_name = kwargs.get('resource', None)
+        if resource_name:
+            resource_name = resource_name.strip('/')
         if not resource_name in self.tastypie_api._registry:
             raise Http404
 

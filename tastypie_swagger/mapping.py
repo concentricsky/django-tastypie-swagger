@@ -1,7 +1,18 @@
 import datetime
 import logging
 
-from django.db.models.sql.constants import QUERY_TERMS
+try:
+    from django.db.models.sql.constants import QUERY_TERMS
+except ImportError:
+    # NOTE(pierrealix): django.db.models.sql.constants.QUERY_TERMS has been
+    # removed in django2.1.
+    # This is a hack...
+    QUERY_TERMS = {
+        'exact', 'iexact', 'contains', 'icontains', 'gt', 'gte', 'lt', 'lte', 'in',
+        'startswith', 'istartswith', 'endswith', 'iendswith', 'range', 'year',
+        'month', 'day', 'week_day', 'hour', 'minute', 'second', 'isnull', 'search',
+        'regex', 'iregex',
+    }
 
 try:
     from django.utils.encoding import force_text
@@ -160,9 +171,9 @@ class ResourceSwaggerMapping(object):
             'name': "order_by",
             'dataType': "String",
             'required': False,
-            'description': unicode("Orders the result set based on the selection. "
-                                   "Ascending order by default, prepending the '-' "
-                                   "sign change the sorting order to descending"),
+            'description': ("Orders the result set based on the selection. "
+                            "Ascending order by default, prepending the '-' "
+                            "sign change the sorting order to descending"),
             'allowableValues': {
                 'valueType' : "LIST",
                 'values': values
@@ -204,22 +215,7 @@ class ResourceSwaggerMapping(object):
                             has_related_resource = hasattr(self.resource.fields[name], 'get_related_resource')
 
                         if not has_related_resource:
-                            #This code has been mostly sucked from the tastypie lib
-                            if getattr(self.resource._meta, 'queryset', None) is not None:
-                                # Get the possible query terms from the current QuerySet.
-                                if hasattr(self.resource._meta.queryset.query.query_terms, 'keys'):
-                                    # Django 1.4 & below compatibility.
-                                    field = self.resource._meta.queryset.query.query_terms.keys()
-                                else:
-                                    # Django 1.5+.
-                                    field = self.resource._meta.queryset.query.query_terms
-                            else:
-                                if hasattr(QUERY_TERMS, 'keys'):
-                                    # Django 1.4 & below compatibility.
-                                    field = QUERY_TERMS.keys()
-                                else:
-                                    # Django 1.5+.
-                                    field = QUERY_TERMS
+                            field = QUERY_TERMS
 
                         else: # Show all params from related model
                             # Add a subset of filter only foreign-key compatible on the relation itself.
@@ -304,7 +300,7 @@ class ResourceSwaggerMapping(object):
                                   name=name,
                                   dataType=field['dataType'],
                                   required=field['required'],
-                                  description=unicode(field['description'])
+                                  description=field['description']
                                   ))
 
 
