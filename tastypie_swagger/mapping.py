@@ -214,7 +214,8 @@ class ResourceSwaggerMapping(object):
 
                         if not has_related_resource:
                             #This code has been mostly sucked from the tastypie lib
-                            if getattr(self.resource._meta, 'queryset', None) is not None:
+                            if getattr(self.resource._meta, 'queryset', None) is not None \
+                                    and hasattr(self.resource._meta.queryset.query, 'query_terms'):
                                 # Get the possible query terms from the current QuerySet.
                                 if hasattr(self.resource._meta.queryset.query.query_terms, 'keys'):
                                     # Django 1.4 & below compatibility.
