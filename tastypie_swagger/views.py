@@ -4,7 +4,7 @@ import sys
 from tastypie_swagger.mapping import ResourceSwaggerMapping
 
 from django.core.exceptions import ImproperlyConfigured
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponse, Http404
 from django.views.generic import TemplateView
 import tastypie
