@@ -4,3 +4,9 @@ build
 *.egg-info
 .pypirc
 docs/_build
+/.idea/django-tastypie-swagger.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/workspace.xml
+/.project
+/.pydevproject
