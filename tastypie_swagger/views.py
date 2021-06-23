@@ -133,11 +133,11 @@ class Schema2View(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
     """
     Provide an individual resource schema for swagger
 
-    This JSON must conform to http://swagger.io/specification/ 
+    This JSON must conform to http://swagger.io/specification/
     at Version 2.0
 
     For testing see example/demo.tests, which validates a default ModelResource
-    to conform to this specification 
+    to conform to this specification
     """
 
     def get_context_data(self, *args, **kwargs):
@@ -168,7 +168,7 @@ class SwaggerSpecs2View(TastypieApiMixin, JSONView):
     This JSON must conform to https://github.com/wordnik/swagger-core/wiki/Resource-Listing
 
     Usage:
-        url(r'^api/doc/', include('tastypie_swagger.urls', 
+        url(r'^api/doc/', include('tastypie_swagger.urls',
                               namespace='demo_api_swagger'),
           kwargs={
               "tastypie_api_module":"demo.apis.api",
@@ -188,7 +188,7 @@ class SwaggerSpecs2View(TastypieApiMixin, JSONView):
     api.basePath - string of common base URI. if not provided defaults to the
     api's first Resource base path
 
-    In addition you may override any of the 'info' attributes in the 
+    In addition you may override any of the 'info' attributes in the
     specification by adding an api.meta dict, e.g.
 
     api.info = {
