@@ -35,7 +35,7 @@ setup(
     ],
     extras_require={
         'dev': [
-            'swagger_spec_validator' # https://github.com/Yelp/swagger_spec_validator
+            'swagger_spec_validator'  # https://github.com/Yelp/swagger_spec_validator
         ],
     }
 )

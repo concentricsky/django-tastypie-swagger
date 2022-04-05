@@ -12,7 +12,6 @@ SWAGGER_V2_TYPE_MAP = {
 
 
 class ResourceSwagger2Mapping(ResourceSwaggerMapping):
-
     """
     build the 'paths' and 'definitions' entries in a swagger V2 spec
 
@@ -162,6 +161,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         own right are mapped using $ref references.
         """
         props = model.get('properties')
+
         def recurse(prop):
             if isinstance(prop, dict):
                 kind = prop.get('type')
@@ -181,6 +181,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
             if '$ref' in prop and 'type' in prop:
                 del prop['type']
                 del prop['description']
+
         recurse(props)
 
     def get_model_ref_name(self, name):
