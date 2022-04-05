@@ -29,4 +29,13 @@ setup(
     packages=['tastypie_swagger'],
     include_package_data=True,
     zip_safe=False,
+    install_requires=[
+        'Django<3.3',
+        'django-tastypie>=0.14.4',
+    ],
+    extras_require={
+        'dev': [
+            'swagger_spec_validator'  # https://github.com/Yelp/swagger_spec_validator
+        ],
+    }
 )

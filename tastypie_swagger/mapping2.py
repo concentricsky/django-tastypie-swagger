@@ -1,6 +1,5 @@
 from tastypie_swagger.mapping import ResourceSwaggerMapping
 
-from six import iteritems
 SWAGGER_V2_TYPE_MAP = {
     'List': ('array', None),
     'int': ('integer', 'int32'),
@@ -13,7 +12,6 @@ SWAGGER_V2_TYPE_MAP = {
 
 
 class ResourceSwagger2Mapping(ResourceSwaggerMapping):
-
     """
     build the 'paths' and 'definitions' entries in a swagger V2 spec
 
@@ -41,13 +39,13 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         tags - the "tags" dict of the specs
 
     Notes:
-        * Any tastypie common dataTypes referenced in the V1 specs are mapped 
+        * Any tastypie common dataTypes referenced in the V1 specs are mapped
           as "$ref" and the data type is added to the defs dict. To ensure
           uniqueness among multiple resources, the ListView, Object and Meta
           datatypes are prefixed with the resource name
 
         * any parameter's "in" attribute for GET methods are set to "query",
-          all other methods GET/DELETE/PUT/PATCH get "body". 
+          all other methods GET/DELETE/PUT/PATCH get "body".
 
         * if the parameter name appears as "{<name>}" in the operation's
           path (e.g. parameter "id" in "/category/{id}"), the "in" attribute
@@ -61,7 +59,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
 
     Developers:
 
-        IF YOU UPDATE THIS, BE SURE TO RUN validation tests in 
+        IF YOU UPDATE THIS, BE SURE TO RUN validation tests in
 
         $ cd example
         $ manage.py test demo
@@ -116,7 +114,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                     method, uri, op.get('parameters'), models)
                 path[method]['parameters'] = op_params
         # build definitions
-        for name, model in iteritems(models):
+        for name, model in models.items():
             model.pop('id')
             self.map_properties(model, models)
             # add actual definition object
@@ -160,9 +158,10 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         recursively map a model's properties to 'definitions' syntax
 
         This will create entries for 'definitions'. Types in their
-        own right are mapped using $ref references. 
+        own right are mapped using $ref references.
         """
         props = model.get('properties')
+
         def recurse(prop):
             if isinstance(prop, dict):
                 kind = prop.get('type')
@@ -174,7 +173,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
                 ref = prop.get('$ref')
                 if ref is not None and not ref.startswith('#'):
                     prop['$ref'] = self.get_model_ref(ref)
-                for key, subprop in iteritems(prop):
+                for key, subprop in prop.items():
                     recurse(subprop)
             # if a type is referenced remove 'type' and 'descriptions'
             # to avoid warning 'other properties are defined at level ...'
@@ -182,6 +181,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
             if '$ref' in prop and 'type' in prop:
                 del prop['type']
                 del prop['description']
+
         recurse(props)
 
     def get_model_ref_name(self, name):
@@ -189,7 +189,7 @@ class ResourceSwagger2Mapping(ResourceSwaggerMapping):
         return unique ref name for definitions
 
         This is required because the Swagger V1 specs were on a per-resource
-        level, whereas the Swagger V2 specs are for multiple resources. 
+        level, whereas the Swagger V2 specs are for multiple resources.
         """
         if name in ['ListView', 'Objects', 'Meta', 'Object']:
             name = '%s_%s' % (self.resource_name.replace('/', '_'),

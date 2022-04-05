@@ -1,19 +1,17 @@
+from demo.models import FooModel, BarModel
 from tastypie.api import Api
 from tastypie.resources import ModelResource
 
-from demo.models import FooModel, BarModel
-
 
 class FooResource(ModelResource):
-
     class Meta:
         queryset = FooModel.objects.all()
 
 
 class BarResource(ModelResource):
-
     class Meta:
         queryset = BarModel.objects.all()
+
 
 api = Api('v1')
 api.title = 'demo API'

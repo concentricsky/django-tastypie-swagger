@@ -1,19 +1,16 @@
-from importlib import import_module
 import json
-import sys
-from tastypie_swagger.mapping import ResourceSwaggerMapping
-
-from django.core.exceptions import ImproperlyConfigured
-from django.urls import reverse
-from django.http import HttpResponse, Http404
-from django.views.generic import TemplateView
 import tastypie
+from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse, Http404
+from django.urls import reverse
+from django.views.generic import TemplateView
+from importlib import import_module
 
+from tastypie_swagger.mapping import ResourceSwaggerMapping
 from tastypie_swagger.mapping2 import ResourceSwagger2Mapping
 
 
 class TastypieApiMixin(object):
-
     """
     Provides views with a 'tastypie_api' attr representing a tastypie.api.Api instance
 
@@ -29,7 +26,8 @@ class TastypieApiMixin(object):
             tastypie_api_module = self.kwargs.get('tastypie_api_module', None)
             if not tastypie_api_module:
                 raise ImproperlyConfigured(
-                    "tastypie_api_module must be defined as an extra parameters in urls.py with its value being a path to a tastypie.api.Api instance.")
+                    "tastypie_api_module must be defined as an extra parameters "
+                    "in urls.py with its value being a path to a tastypie.api.Api instance.")
 
             if isinstance(tastypie_api_module, tastypie.api.Api):
                 tastypie_api = tastypie_api_module
@@ -50,7 +48,6 @@ class TastypieApiMixin(object):
 
 
 class SwaggerApiDataMixin(object):
-
     """
     Provides required API context data
     """
@@ -66,7 +63,6 @@ class SwaggerApiDataMixin(object):
 
 
 class JSONView(TemplateView):
-
     """
     Simple JSON rendering
     """
@@ -93,7 +89,6 @@ class JSONView(TemplateView):
 
 
 class SwaggerView(TastypieApiMixin, TemplateView):
-
     """
     Display the swagger-ui page
     """
@@ -108,7 +103,6 @@ class SwaggerView(TastypieApiMixin, TemplateView):
 
 
 class ResourcesView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
-
     """
     Provide a top-level resource listing for swagger
 
@@ -122,14 +116,14 @@ class ResourcesView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
         apis = [{'path': '/%s' % name}
                 for name in sorted(self.tastypie_api._registry.keys())]
         context.update({
-            'basePath': self.request.build_absolute_uri(reverse('%s:schema' % self.kwargs.get('namespace'))).rstrip('/'),
+            'basePath': self.request.build_absolute_uri(reverse('%s:schema' % self.kwargs.get('namespace'))).rstrip(
+                '/'),
             'apis': apis,
         })
         return context
 
 
 class Schema2View(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
-
     """
     Provide an individual resource schema for swagger
 
@@ -143,7 +137,7 @@ class Schema2View(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
     def get_context_data(self, *args, **kwargs):
         # Verify matching tastypie resource exists
         resource_name = kwargs.get('resource', None)
-        if not resource_name in self.tastypie_api._registry:
+        if resource_name not in self.tastypie_api._registry:
             raise Http404
 
         # Generate mapping from tastypie.resources.Resource.build_schema
@@ -161,7 +155,6 @@ class Schema2View(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
 
 
 class SwaggerSpecs2View(TastypieApiMixin, JSONView):
-
     """
     Provide a top-level resource listing for swagger
 
@@ -206,7 +199,7 @@ class SwaggerSpecs2View(TastypieApiMixin, JSONView):
 
     def get_resource(self, context, resource_name):
         # Verify matching tastypie resource exists
-        if not resource_name in self.tastypie_api._registry:
+        if resource_name not in self.tastypie_api._registry:
             raise Http404
         # Generate mapping from tastypie.resources.Resource.build_schema
         resource = self.tastypie_api._registry.get(resource_name)
@@ -267,7 +260,6 @@ class SwaggerSpecs2View(TastypieApiMixin, JSONView):
 
 
 class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
-
     """
     Provide an individual resource schema for swagger
 
@@ -277,7 +269,7 @@ class SchemaView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
     def get_context_data(self, *args, **kwargs):
         # Verify matching tastypie resource exists
         resource_name = kwargs.get('resource', None)
-        if not resource_name in self.tastypie_api._registry:
+        if resource_name not in self.tastypie_api._registry:
             raise Http404
 
         # Generate mapping from tastypie.resources.Resource.build_schema
