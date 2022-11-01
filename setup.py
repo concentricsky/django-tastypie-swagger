@@ -32,10 +32,7 @@ setup(
     install_requires=[
         'Django<3.3',
         'django-tastypie>=0.14.4',
+        'swagger_spec_validator', # https://github.com/Yelp/swagger_spec_validator
+        'typing_extensions',
     ],
-    extras_require={
-        'dev': [
-            'swagger_spec_validator'  # https://github.com/Yelp/swagger_spec_validator
-        ],
-    }
 )
