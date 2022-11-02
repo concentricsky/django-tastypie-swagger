@@ -97,8 +97,14 @@ class SwaggerView(TastypieApiMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(SwaggerView, self).get_context_data(**kwargs)
-        context['discovery_url'] = reverse(
-            '%s:resources' % self.kwargs.get('namespace'))
+        namespace = self.kwargs.get('namespace')
+        basePath = (self.request
+                    .build_absolute_uri(reverse(f'{namespace}:index'))
+                    .rstrip('/'))
+        context.update({
+            'discovery_url': f'{basePath}/resources',
+            'swagger_url': f'{basePath}/specs/swagger.json'
+        })
         return context
 
 
@@ -115,9 +121,12 @@ class ResourcesView(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
         # Construct schema endpoints from resources
         apis = [{'path': '/%s' % name}
                 for name in sorted(self.tastypie_api._registry.keys())]
+        namespace = self.kwargs.get('namespace')
+        basePath = (self.request
+            .build_absolute_uri(reverse(f'{namespace}:schema'))
+            .rstrip('/'))
         context.update({
-            'basePath': self.request.build_absolute_uri(reverse('%s:schema' % self.kwargs.get('namespace'))).rstrip(
-                '/'),
+            'basePath': basePath,
             'apis': apis,
         })
         return context
@@ -149,7 +158,7 @@ class Schema2View(TastypieApiMixin, SwaggerApiDataMixin, JSONView):
             'basePath': '/',
             'apis': mapping.build_apis(),
             'models': mapping.build_models(),
-            'resourcePath': '/{0}'.format(resource._meta.resource_name)
+            'resourcePath': '/{0}'.format(resource._meta.resource_name),
         })
         return context
 
