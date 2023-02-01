@@ -201,7 +201,7 @@ class ResourceSwaggerMapping(object):
                         if field == ALL:
                             has_related_resource = False
                         else:
-                            has_related_resource = hasattr(self.resource.fields[name], 'get_related_resource')
+                            has_related_resource = hasattr(self.resource.fields.get(name), 'get_related_resource')
 
                         if not has_related_resource:
                             #This code has been mostly sucked from the tastypie lib
