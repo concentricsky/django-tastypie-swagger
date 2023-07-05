@@ -15,7 +15,7 @@ except ImportError:
 try:
     from django.utils.encoding import force_text
 except ImportError:
-    from django.utils.encoding import force_text as force_text
+    from django.utils.encoding import force_str as force_text
 
 
 from tastypie import fields
